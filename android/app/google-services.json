@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "195880225262",
+    "project_id": "app-bender",
+    "storage_bucket": "app-bender.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195880225262:android:f1fda1f2e3d44154aba6ff",
+        "android_client_info": {
+          "package_name": "com.example.probando_app_bender_v0"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7jfiDide7cqsu6pEOj-Ne1Sn2k9hidl0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
