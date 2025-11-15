@@ -61,6 +61,15 @@ class PropiedadesViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> actualizar(String id, Propiedad p) async {
+    try {
+      await _db.collection('propiedades').doc(id).update(p.toMap());
+    } catch (e) {
+      error = "Error al actualizar propiedad";
+      notifyListeners();
+    }
+  }
+
   Future<void> eliminar(String id) async {
     try {
       await _db.collection('propiedades').doc(id).delete();

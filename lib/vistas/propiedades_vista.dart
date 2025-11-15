@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:probando_app_bender_v0/vistas/propiedades_detalle_vista.dart';
 import 'package:provider/provider.dart';
 import '../vista_modelos/propiedades_vm.dart';
 import '../widgets/tarjeta_propiedad.dart';
+import 'propiedades_detalle_vista.dart';
+import 'agregar_propiedad_vista.dart';
 
 class PropiedadesVista extends StatelessWidget {
   const PropiedadesVista({super.key});
@@ -96,7 +99,7 @@ class PropiedadesVista extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Agrega propiedades desde Firebase Console",
+              "Toca el botón + para agregar",
               style: TextStyle(color: Colors.white70),
               textAlign: TextAlign.center,
             ),
@@ -104,7 +107,12 @@ class PropiedadesVista extends StatelessWidget {
         ),
       )
           : ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 80,
+        ),
         itemCount: vm.propiedades.length,
         itemBuilder: (context, i) {
           final p = vm.propiedades[i];
@@ -112,15 +120,40 @@ class PropiedadesVista extends StatelessWidget {
             children: [
               TarjetaPropiedad(
                 titulo: p.titulo,
-                descripcion:
-                "${p.direccion}\nAlquiler: \$${p.alquilerMensual.toStringAsFixed(0)}",
+                descripcion: p.direccion,
                 icono: Icons.home,
                 color: Colors.orangeAccent,
+                precio: p.alquilerMensual,
+                mostrarBoton: false,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PropiedadDetalleVista(propiedad: p),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
             ],
           );
         },
+      ),
+      // 👇👇👇 AQUÍ ESTÁ EL BOTÓN FLOTANTE 👇👇👇
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AgregarPropiedadVista(),
+            ),
+          );
+        },
+        backgroundColor: Colors.amber,
+        foregroundColor: Colors.black,
+        icon: const Icon(Icons.add),
+        label: const Text('Agregar'),
       ),
     );
   }
