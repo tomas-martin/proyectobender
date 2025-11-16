@@ -14,6 +14,9 @@ class PagosViewModel extends ChangeNotifier {
 
   StreamSubscription<QuerySnapshot>? _subscription;
 
+  // ✅ NUEVO: Callback para notificar cambios a FinanzasViewModel
+  void Function(List<Pago>)? onPagosActualizados;
+
   PagosViewModel() {
     escucharPagos();
   }
@@ -39,6 +42,10 @@ class PagosViewModel extends ChangeNotifier {
 
           cargando = false;
           debugPrint('✅ Total pagos cargados: ${_lista.length}');
+
+          // ✅ NUEVO: Notificar a FinanzasViewModel
+          onPagosActualizados?.call(_lista);
+
           notifyListeners();
         },
         onError: (e) {
@@ -115,6 +122,20 @@ class PagosViewModel extends ChangeNotifier {
   /// Obtener pagos de una propiedad específica
   List<Pago> pagosPorPropiedad(String propiedadId) {
     return _lista.where((p) => p.propiedadId == propiedadId).toList();
+  }
+
+  /// Obtener último pago de una propiedad
+  Pago? obtenerUltimoPago(String propiedadId) {
+    final pagosProp = pagosPorPropiedad(propiedadId);
+    if (pagosProp.isEmpty) return null;
+
+    pagosProp.sort((a, b) => b.fecha.compareTo(a.fecha));
+    return pagosProp.first;
+  }
+
+  /// Cargar pagos de una propiedad específica (filtrado local)
+  void cargarPagosDePropiedad(String propiedadId) {
+    notifyListeners();
   }
 
   /// Obtener pagos pendientes

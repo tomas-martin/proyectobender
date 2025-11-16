@@ -29,8 +29,28 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => NavigationViewModel()),
         ChangeNotifierProvider(create: (_) => PropiedadesViewModel()),
-        ChangeNotifierProvider(create: (_) => PagosViewModel()),
         ChangeNotifierProvider(create: (_) => FinanzasViewModel()),
+        // ✅ PagosViewModel debe ir después de FinanzasViewModel
+        ChangeNotifierProxyProvider<FinanzasViewModel, PagosViewModel>(
+          create: (context) {
+            final pagosVM = PagosViewModel();
+            final finanzasVM = Provider.of<FinanzasViewModel>(context, listen: false);
+
+            // ✅ Conectar PagosViewModel con FinanzasViewModel
+            pagosVM.onPagosActualizados = (pagos) {
+              finanzasVM.actualizarConPagos(pagos);
+            };
+
+            return pagosVM;
+          },
+          update: (context, finanzasVM, pagosVM) {
+            // Mantener la conexión actualizada
+            pagosVM?.onPagosActualizados = (pagos) {
+              finanzasVM.actualizarConPagos(pagos);
+            };
+            return pagosVM!;
+          },
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

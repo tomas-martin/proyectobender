@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../modelos/propiedad.dart';
 import '../vista_modelos/propiedades_vm.dart';
 import '../vista_modelos/pagos_vm.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
 import '../servicios/storage_servicio.dart';
 
 import 'agregar_propiedad_vista.dart';
@@ -179,7 +180,9 @@ class PropiedadDetalleVista extends StatelessWidget {
                   _buildInfoItem(
                     Icons.payment,
                     'Último pago',
-                    ultimoPago?.fecha ?? 'Sin pagos registrados',
+                    ultimoPago != null
+                        ? '${ultimoPago.fecha.day}/${ultimoPago.fecha.month}/${ultimoPago.fecha.year}'
+                        : 'Sin pagos registrados',
                     Colors.orange,
                   ),
 
@@ -381,26 +384,43 @@ class PropiedadDetalleVista extends StatelessWidget {
   }
 
   void _verPagosPropiedad(BuildContext context) {
-    Provider.of<PagosViewModel>(context, listen: false)
-        .cargarPagosDePropiedad(propiedad.id);
+    final pagosVM = Provider.of<PagosViewModel>(context, listen: false);
+    final nav = Provider.of<NavigationViewModel>(context, listen: false);
 
-    Navigator.pushNamed(context, "/pagos");
+    pagosVM.cargarPagosDePropiedad(propiedad.id);
+
+    Navigator.pop(context); // Cerrar detalle
+    nav.cambiarIndice(2); // Ir a vista de pagos
   }
 
   void _cambiarEstado(BuildContext context) async {
     final vm = Provider.of<PropiedadesViewModel>(context, listen: false);
 
-    final nuevoValor = !propiedad.estaAlquilada;
+    final nuevoEstado = propiedad.estaAlquilada ? 'disponible' : 'alquilada';
 
-    await vm.actualizar(propiedad.id, {"estaAlquilada": nuevoValor});
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(nuevoValor
-            ? "La propiedad ahora está marcada como ALQUILADA"
-            : "La propiedad ahora está marcada como DISPONIBLE"),
-      ),
+    // ✅ CORREGIDO: Usar copyWith para crear nueva instancia
+    final propiedadActualizada = propiedad.copyWith(
+      estado: nuevoEstado,
+      // Si cambia a disponible, limpiar inquilino
+      inquilinoId: nuevoEstado == 'disponible' ? null : propiedad.inquilinoId,
+      inquilinoNombre: nuevoEstado == 'disponible' ? null : propiedad.inquilinoNombre,
     );
+
+    await vm.actualizar(propiedad.id, propiedadActualizada);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(nuevoEstado == 'alquilada'
+              ? "✅ La propiedad ahora está marcada como ALQUILADA"
+              : "✅ La propiedad ahora está marcada como DISPONIBLE"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Volver atrás para refrescar
+      Navigator.pop(context);
+    }
   }
 
   // ==========================================================

@@ -7,6 +7,8 @@ class Propiedad {
   final String estado; // 'disponible' o 'alquilada'
   final String? inquilinoId; // ID del inquilino (null si está disponible)
   final String? inquilinoNombre; // Nombre del inquilino
+  final String tipo; // ✅ AGREGADO - Ej: 'Departamento', 'Casa', 'Local'
+  final String fechaRegistro; // ✅ AGREGADO - Fecha de registro formateada
 
   Propiedad({
     required this.id,
@@ -17,7 +19,15 @@ class Propiedad {
     this.estado = 'disponible',
     this.inquilinoId,
     this.inquilinoNombre,
-  });
+    this.tipo = 'Departamento', // ✅ VALOR POR DEFECTO
+    String? fechaRegistro, // ✅ AGREGADO como opcional
+  }) : fechaRegistro = fechaRegistro ?? _getFechaActual();
+
+  // ✅ Helper para obtener fecha actual formateada
+  static String _getFechaActual() {
+    final now = DateTime.now();
+    return '${now.day}/${now.month}/${now.year}';
+  }
 
   // Para leer desde Firestore
   factory Propiedad.fromMap(String id, Map<String, dynamic> data) {
@@ -33,6 +43,24 @@ class Propiedad {
       alquiler = double.tryParse(alquilerData) ?? 0.0;
     }
 
+    // ✅ Convertir timestamp a fecha formateada
+    String fechaRegistro = _getFechaActual();
+    if (data['createdAt'] != null) {
+      try {
+        final timestamp = data['createdAt'];
+        if (timestamp is DateTime) {
+          fechaRegistro = '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+        } else {
+          // Si es Timestamp de Firebase
+          final date = timestamp.toDate();
+          fechaRegistro = '${date.day}/${date.month}/${date.year}';
+        }
+      } catch (e) {
+        // Si falla, usar fecha actual
+        fechaRegistro = _getFechaActual();
+      }
+    }
+
     return Propiedad(
       id: id,
       titulo: data['titulo']?.toString() ?? 'Sin título',
@@ -42,6 +70,8 @@ class Propiedad {
       estado: data['estado']?.toString() ?? 'disponible',
       inquilinoId: data['inquilinoId']?.toString(),
       inquilinoNombre: data['inquilinoNombre']?.toString(),
+      tipo: data['tipo']?.toString() ?? 'Departamento', // ✅ LEER DE FIREBASE
+      fechaRegistro: fechaRegistro, // ✅ AGREGAR
     );
   }
 
@@ -55,6 +85,8 @@ class Propiedad {
       'estado': estado,
       'inquilinoId': inquilinoId,
       'inquilinoNombre': inquilinoNombre,
+      'tipo': tipo, // ✅ GUARDAR EN FIREBASE
+      // No guardamos fechaRegistro porque se maneja con createdAt en Firestore
     };
   }
 
@@ -71,6 +103,8 @@ class Propiedad {
     String? estado,
     String? inquilinoId,
     String? inquilinoNombre,
+    String? tipo, // ✅ AGREGADO
+    String? fechaRegistro, // ✅ AGREGADO
   }) {
     return Propiedad(
       id: id ?? this.id,
@@ -81,6 +115,8 @@ class Propiedad {
       estado: estado ?? this.estado,
       inquilinoId: inquilinoId ?? this.inquilinoId,
       inquilinoNombre: inquilinoNombre ?? this.inquilinoNombre,
+      tipo: tipo ?? this.tipo, // ✅ AGREGADO
+      fechaRegistro: fechaRegistro ?? this.fechaRegistro, // ✅ AGREGADO
     );
   }
 }

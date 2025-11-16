@@ -127,93 +127,93 @@ class PagosVista extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   margin: const EdgeInsets.symmetric(vertical: 6),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _getEstadoColor(p.estado).withOpacity(0.2),
-                      child: Icon(
-                        _getEstadoIcon(p.estado),
-                        color: _getEstadoColor(p.estado),
-                      ),
-                    ),
-                    title: Text(
-                      p.propiedadTitulo,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          p.inquilinoNombre,
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              '\$${p.monto.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
-                              ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    // ✅ NUEVO: Al tocar muestra opciones
+                    onTap: () => _mostrarOpcionesPago(context, p),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: _getEstadoColor(p.estado).withOpacity(0.2),
+                            child: Icon(
+                              _getEstadoIcon(p.estado),
+                              color: _getEstadoColor(p.estado),
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getEstadoColor(p.estado).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                p.estado.toUpperCase(),
-                                style: TextStyle(
-                                  color: _getEstadoColor(p.estado),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.propiedadTitulo,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  p.inquilinoNombre,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '\$${p.monto.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                        color: Colors.amber,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _getEstadoColor(p.estado).withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        p.estado.toUpperCase(),
+                                        style: TextStyle(
+                                          color: _getEstadoColor(p.estado),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${p.fecha.day}/${p.fecha.month}/${p.fecha.year}',
+                                      style: const TextStyle(
+                                        color: Colors.white38,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: p.estaPagado
-                        ? const Icon(
-                      Icons.check_circle,
-                      color: Colors.greenAccent,
-                    )
-                        : IconButton(
-                      icon: const Icon(
-                        Icons.check,
-                        color: Colors.amber,
+                          ),
+                          // ✅ NUEVO: Indicador visual de que es clickeable
+                          Icon(
+                            Icons.more_vert,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ],
                       ),
-                      onPressed: () async {
-                        await vm.marcarPagado(p.id);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '✅ Pago de ${p.inquilinoNombre} marcado como pagado',
-                              ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      },
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AgregarPagoVista(pago: p),
-                        ),
-                      );
-                    },
                   ),
                 );
               },
@@ -234,6 +234,224 @@ class PagosVista extends StatelessWidget {
         foregroundColor: Colors.black,
         icon: const Icon(Icons.add),
         label: const Text('Registrar Pago'),
+      ),
+    );
+  }
+
+  // ✅ NUEVO: Mostrar opciones al tocar un pago
+  void _mostrarOpcionesPago(BuildContext context, pago) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pago.propiedadTitulo,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '\$${pago.monto.toStringAsFixed(0)} • ${pago.inquilinoNombre}',
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Divider(color: Colors.white12, height: 1),
+
+                // ✅ Marcar como pagado (si no está pagado)
+                if (!pago.estaPagado)
+                  ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFF2E7D32),
+                      child: Icon(Icons.check, color: Colors.white),
+                    ),
+                    title: const Text(
+                      'Marcar como pagado',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(bottomSheetContext);
+                      final vm = Provider.of<PagosViewModel>(context, listen: false);
+
+                      try {
+                        await vm.marcarPagado(pago.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('✅ Pago de ${pago.inquilinoNombre} marcado como pagado'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('❌ Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+
+                // ✅ Editar
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFFFA000),
+                    child: Icon(Icons.edit, color: Colors.white),
+                  ),
+                  title: const Text(
+                    'Editar pago',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(bottomSheetContext);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AgregarPagoVista(pago: pago),
+                      ),
+                    );
+                  },
+                ),
+
+                // ✅ Eliminar
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFD32F2F),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  title: const Text(
+                    'Eliminar pago',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(bottomSheetContext);
+                    _confirmarEliminar(context, pago);
+                  },
+                ),
+
+                const SizedBox(height: 8),
+
+                // Cancelar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(bottomSheetContext),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ NUEVO: Confirmar eliminación
+  void _confirmarEliminar(BuildContext context, pago) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '¿Eliminar pago?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Se eliminará el pago de ${pago.inquilinoNombre} por \$${pago.monto.toStringAsFixed(0)}',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+
+              final vm = Provider.of<PagosViewModel>(context, listen: false);
+
+              // Mostrar loading
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const Center(
+                  child: CircularProgressIndicator(color: Colors.amber),
+                ),
+              );
+
+              try {
+                await vm.eliminar(pago.id);
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Cerrar loading
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ Pago eliminado correctamente'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Cerrar loading
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('❌ Error al eliminar: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

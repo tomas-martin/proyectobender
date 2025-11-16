@@ -12,10 +12,7 @@ class TableroVista extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ahora sí escucha cambios en finanzas
     final finVM = Provider.of<FinanzasViewModel>(context);
-
-    // La navegación no necesita escuchar cambios
     final nav = Provider.of<NavigationViewModel>(context, listen: false);
 
     return Scaffold(
@@ -46,39 +43,89 @@ class TableroVista extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Ingresos - últimos 12 meses',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.show_chart, color: Colors.amber, size: 24),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Ingresos - últimos 12 meses',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     const GraficoIngresos(),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
-                    // Valores dependientes de FinanzasViewModel (escuchando cambios)
-                    Text(
-                      'Total año: \$${finVM.totalAnual.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.greenAccent),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Promedio mensual: \$${finVM.promedioMensual.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.white70),
+                    // Estadísticas
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.amber.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStat(
+                            'Total Año',
+                            '\$${finVM.totalAnual.toStringAsFixed(0)}',
+                            Colors.greenAccent,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: Colors.white12,
+                          ),
+                          _buildStat(
+                            'Promedio',
+                            '\$${finVM.promedioMensual.toStringAsFixed(0)}',
+                            Colors.blueAccent,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: Colors.white12,
+                          ),
+                          _buildStat(
+                            'Mejor Mes',
+                            finVM.mejorMes,
+                            Colors.amber,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // === GRID DE ACCIONES ===
+              const Text(
+                'Acciones Rápidas',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
               GridView.count(
                 crossAxisCount: 3,
                 shrinkWrap: true,
@@ -125,7 +172,7 @@ class TableroVista extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // === SECCIÓN PREMIUM ===
               const Text(
@@ -136,7 +183,7 @@ class TableroVista extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               TarjetaPropiedad(
                 titulo: 'Análisis avanzado',
@@ -144,7 +191,7 @@ class TableroVista extends StatelessWidget {
                 icono: Icons.query_stats,
                 color: Colors.greenAccent,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               TarjetaPropiedad(
                 titulo: 'Cobro automático',
@@ -156,6 +203,54 @@ class TableroVista extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStat(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentStat(String value, String label, Color color, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 32),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: color.withOpacity(0.8),
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }
