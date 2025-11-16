@@ -22,6 +22,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   final _alquilerController = TextEditingController();
   final _imagenUrlController = TextEditingController();
 
+  // 🔥 LAS VARIABLES QUE TE FALTABAN 🔥
+  String _estadoSeleccionado = 'disponible';
+  final TextEditingController _inquilinoController = TextEditingController();
+
   final ImagePicker _picker = ImagePicker();
   File? _imagenSeleccionada;
   bool _guardando = false;
@@ -35,6 +39,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       _direccionController.text = widget.propiedad!.direccion;
       _alquilerController.text = widget.propiedad!.alquilerMensual.toString();
       _imagenUrlController.text = widget.propiedad!.imagen;
+
+      // 🔥 ESTO DABA ERROR ANTES PORQUE NO EXISTÍAN
+      _estadoSeleccionado = widget.propiedad!.estado;
+      _inquilinoController.text = widget.propiedad!.inquilinoNombre ?? '';
     }
   }
 
@@ -44,6 +52,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     _direccionController.dispose();
     _alquilerController.dispose();
     _imagenUrlController.dispose();
+    _inquilinoController.dispose(); // 🔥 IMPORTANTE
     super.dispose();
   }
 
@@ -59,7 +68,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       if (imagen != null) {
         setState(() {
           _imagenSeleccionada = File(imagen.path);
-          _imagenUrlController.clear(); // Limpiar URL si se selecciona archivo
+          _imagenUrlController.clear();
         });
       }
     } catch (e) {
@@ -75,35 +84,30 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   }
 
   Future<String?> _subirImagenSiEsNecesario() async {
-    // Si hay imagen seleccionada del dispositivo, subirla
     if (_imagenSeleccionada != null) {
       setState(() => _subiendoImagen = true);
 
       final storageService = StorageServicio();
 
-      // Si estamos editando y había una imagen anterior, eliminarla
       if (widget.propiedad != null && widget.propiedad!.imagen.isNotEmpty) {
         await storageService.eliminarImagen(widget.propiedad!.imagen);
       }
 
-      // Subir nueva imagen
-      final url = await storageService.subirImagen(_imagenSeleccionada!, 'propiedades');
+      final url =
+      await storageService.subirImagen(_imagenSeleccionada!, 'propiedades');
 
       setState(() => _subiendoImagen = false);
       return url;
     }
 
-    // Si hay URL escrita, usarla
     if (_imagenUrlController.text.trim().isNotEmpty) {
       return _imagenUrlController.text.trim();
     }
 
-    // Si estamos editando, mantener la imagen anterior
     if (widget.propiedad != null) {
       return widget.propiedad!.imagen;
     }
 
-    // Sin imagen
     return '';
   }
 
@@ -115,7 +119,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     try {
       final vm = Provider.of<PropiedadesViewModel>(context, listen: false);
 
-      // Subir imagen si es necesario
       final imagenUrl = await _subirImagenSiEsNecesario();
 
       final propiedad = Propiedad(
@@ -124,13 +127,18 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
         direccion: _direccionController.text.trim(),
         alquilerMensual: double.parse(_alquilerController.text.trim()),
         imagen: imagenUrl ?? '',
+        estado: _estadoSeleccionado,
+        inquilinoNombre: _estadoSeleccionado == 'alquilada'
+            ? _inquilinoController.text.trim()
+            : null,
+        inquilinoId: _estadoSeleccionado == 'alquilada'
+            ? 'INQ_${DateTime.now().millisecondsSinceEpoch}'
+            : null,
       );
 
       if (widget.propiedad == null) {
-        // AGREGAR nueva propiedad
         await vm.agregar(propiedad);
       } else {
-        // ACTUALIZAR propiedad existente
         await vm.actualizar(widget.propiedad!.id, propiedad);
       }
 
@@ -166,9 +174,8 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(widget.propiedad == null
-            ? 'Nueva Propiedad'
-            : 'Editar Propiedad'),
+        title:
+        Text(widget.propiedad == null ? 'Nueva Propiedad' : 'Editar Propiedad'),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
@@ -178,11 +185,9 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Vista previa de imagen
               _buildVistaPrevia(),
               const SizedBox(height: 16),
 
-              // Botones para seleccionar imagen
               Row(
                 children: [
                   Expanded(
@@ -199,7 +204,9 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: _guardando ? null : () {
+                      onPressed: _guardando
+                          ? null
+                          : () {
                         setState(() => _imagenSeleccionada = null);
                       },
                       icon: const Icon(Icons.clear),
@@ -214,7 +221,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 8),
 
-              // URL de imagen (alternativa)
               const Text(
                 'O pega una URL de imagen',
                 style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -237,7 +243,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 24),
 
-              // Título
               _buildCampoTexto(
                 'Título',
                 _tituloController,
@@ -246,7 +251,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 20),
 
-              // Dirección
               _buildCampoTexto(
                 'Dirección',
                 _direccionController,
@@ -255,7 +259,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 20),
 
-              // Alquiler
               const Text(
                 'Alquiler Mensual',
                 style: TextStyle(
@@ -273,7 +276,8 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   hintText: 'Ej: 1200',
                   hintStyle: TextStyle(color: Colors.grey[600]),
                   prefixText: '\$ ',
-                  prefixStyle: const TextStyle(color: Colors.amber, fontSize: 18),
+                  prefixStyle:
+                  const TextStyle(color: Colors.amber, fontSize: 18),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
                   border: OutlineInputBorder(
@@ -281,7 +285,8 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.amber, width: 2),
+                    borderSide:
+                    const BorderSide(color: Colors.amber, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -296,12 +301,116 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 32),
 
-              // Botón guardar
+              const Text(
+                'Estado de la Propiedad',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[700]!),
+                ),
+                child: Column(
+                  children: [
+                    RadioListTile<String>(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 20),
+                          SizedBox(width: 8),
+                          Text('Disponible',
+                              style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
+                      value: 'disponible',
+                      groupValue: _estadoSeleccionado,
+                      activeColor: Colors.amber,
+                      onChanged: (value) {
+                        setState(() {
+                          _estadoSeleccionado = value!;
+                          if (value == 'disponible') {
+                            _inquilinoController.clear();
+                          }
+                        });
+                      },
+                    ),
+                    const Divider(color: Colors.white12, height: 1),
+                    RadioListTile<String>(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.home, color: Colors.blue, size: 20),
+                          SizedBox(width: 8),
+                          Text('Alquilada',
+                              style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
+                      value: 'alquilada',
+                      groupValue: _estadoSeleccionado,
+                      activeColor: Colors.amber,
+                      onChanged: (value) {
+                        setState(() {
+                          _estadoSeleccionado = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              if (_estadoSeleccionado == 'alquilada') ...[
+                const Text(
+                  'Nombre del Inquilino',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _inquilinoController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Ej: Philip J. Fry',
+                    hintStyle: TextStyle(color: Colors.grey[600]),
+                    prefixIcon:
+                    const Icon(Icons.person, color: Colors.amber),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                      const BorderSide(color: Colors.amber, width: 2),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (_estadoSeleccionado == 'alquilada' &&
+                        (value == null || value.trim().isEmpty)) {
+                      return 'El nombre del inquilino es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: (_guardando || _subiendoImagen) ? null : _guardarPropiedad,
+                  onPressed:
+                  (_guardando || _subiendoImagen) ? null : _guardarPropiedad,
                   icon: (_guardando || _subiendoImagen)
                       ? const SizedBox(
                     width: 20,
@@ -339,13 +448,11 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     Widget contenido;
 
     if (_imagenSeleccionada != null) {
-      // Imagen del dispositivo
       contenido = Image.file(
         _imagenSeleccionada!,
         fit: BoxFit.cover,
       );
     } else if (_imagenUrlController.text.isNotEmpty) {
-      // Imagen de URL
       contenido = Image.network(
         _imagenUrlController.text,
         fit: BoxFit.cover,
@@ -363,7 +470,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
         },
       );
     } else {
-      // Sin imagen
       contenido = const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
