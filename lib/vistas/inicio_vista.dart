@@ -6,10 +6,7 @@ import 'tablero_vista.dart';
 import 'propiedades_vista.dart';
 import 'pagos_vista.dart';
 import 'finanzas_vista.dart';
-import 'avisos_vista.dart';
-import 'errores_vista.dart';
-import 'vermas_vista.dart';
-import 'perfil_vista.dart';
+import 'propietarios_vista.dart'; // ✅ NUEVO
 
 class InicioVista extends StatefulWidget {
   const InicioVista({super.key});
@@ -25,22 +22,20 @@ class _InicioVistaState extends State<InicioVista> {
   Widget build(BuildContext context) {
     final nav = Provider.of<NavigationViewModel>(context);
 
+    // ✅ SOLO 5 PANTALLAS: Tablero, Propiedades, Pagos, Finanzas, Propietarios
     final paginas = const [
       TableroVista(),
       PropiedadesVista(),
       PagosVista(),
       FinanzasVista(),
-      AvisosVista(),
-      ErroresVista(),
-      VerMasVista(),
-      PerfilVista(),
+      PropietariosVista(), // ✅ NUEVO
     ];
 
     return WillPopScope(
       onWillPop: () async {
         nav.cambiarIndice(0);
         setState(() {
-          _mostrarPantallaInicio = false; // NO volver a la pantalla de carga
+          _mostrarPantallaInicio = false;
         });
         return false;
       },

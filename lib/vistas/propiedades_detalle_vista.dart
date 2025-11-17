@@ -195,6 +195,16 @@ class PropiedadDetalleVista extends StatelessWidget {
                     Colors.cyan,
                   ),
 
+                  const SizedBox(height: 12),
+
+                  // ✅ NUEVO: Mostrar propietario
+                  _buildInfoItem(
+                    Icons.person,
+                    'Propietario',
+                    propiedad.propietarioNombre ?? 'Sin asignar',
+                    Colors.purple,
+                  ),
+
                   const SizedBox(height: 32),
 
                   /// BOTONES DE PAGO
@@ -398,7 +408,7 @@ class PropiedadDetalleVista extends StatelessWidget {
 
     final nuevoEstado = propiedad.estaAlquilada ? 'disponible' : 'alquilada';
 
-    // ✅ CORREGIDO: Usar copyWith para crear nueva instancia
+    // ✅ Usar copyWith para crear nueva instancia
     final propiedadActualizada = propiedad.copyWith(
       estado: nuevoEstado,
       // Si cambia a disponible, limpiar inquilino

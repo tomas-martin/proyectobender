@@ -24,6 +24,7 @@ class AgregarPagoVista extends StatefulWidget {
 class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   final _formKey = GlobalKey<FormState>();
   final _montoController = TextEditingController();
+  final _inquilinoController = TextEditingController(); // ✅ NUEVO
 
   Propiedad? _propiedadSeleccionada;
   String _estadoSeleccionado = 'pendiente';
@@ -40,6 +41,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
       _montoController.text = widget.pago!.monto.toString();
       _estadoSeleccionado = widget.pago!.estado;
       _fechaSeleccionada = widget.pago!.fecha;
+      _inquilinoController.text = widget.pago!.inquilinoNombre; // ✅ NUEVO
     }
 
     if (widget.propiedadId != null && widget.propiedadPreseleccionada == null) {
@@ -53,6 +55,10 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
         setState(() {
           _propiedadSeleccionada = prop;
           _montoController.text = prop.alquilerMensual.toString();
+          // ✅ NUEVO: Si la propiedad ya tiene inquilino, auto-completar
+          if (prop.inquilinoNombre != null) {
+            _inquilinoController.text = prop.inquilinoNombre!;
+          }
         });
       });
     }
@@ -61,6 +67,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   @override
   void dispose() {
     _montoController.dispose();
+    _inquilinoController.dispose(); // ✅ NUEVO
     super.dispose();
   }
 
@@ -80,13 +87,29 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
 
     try {
       final pagosVM = Provider.of<PagosViewModel>(context, listen: false);
+      final propiedadesVM = Provider.of<PropiedadesViewModel>(context, listen: false);
+
+      final nombreInquilino = _inquilinoController.text.trim();
+
+      // ✅ NUEVO: Si la propiedad no tiene inquilino, actualizarla
+      if (_propiedadSeleccionada!.inquilinoNombre == null ||
+          _propiedadSeleccionada!.inquilinoNombre!.isEmpty) {
+
+        final propiedadActualizada = _propiedadSeleccionada!.copyWith(
+          estado: 'alquilada',
+          inquilinoId: 'INQ_${DateTime.now().millisecondsSinceEpoch}',
+          inquilinoNombre: nombreInquilino,
+        );
+
+        await propiedadesVM.actualizar(_propiedadSeleccionada!.id, propiedadActualizada);
+      }
 
       final pago = Pago(
         id: widget.pago?.id ?? "",
         propiedadId: _propiedadSeleccionada!.id,
         propiedadTitulo: _propiedadSeleccionada!.titulo,
-        inquilinoId: _propiedadSeleccionada!.inquilinoId ?? "",
-        inquilinoNombre: _propiedadSeleccionada!.inquilinoNombre ?? "Sin inquilino",
+        inquilinoId: _propiedadSeleccionada!.inquilinoId ?? 'INQ_${DateTime.now().millisecondsSinceEpoch}',
+        inquilinoNombre: nombreInquilino,
         monto: double.parse(_montoController.text.trim()),
         estado: _estadoSeleccionado,
         fecha: _fechaSeleccionada,
@@ -130,7 +153,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                "${prop.inquilinoNombre} • \$${prop.alquilerMensual.toStringAsFixed(0)}",
+                "${prop.propietarioNombre ?? 'Sin propietario'} • \$${prop.alquilerMensual.toStringAsFixed(0)}",
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 12,
@@ -147,8 +170,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   @override
   Widget build(BuildContext context) {
     final propiedadesVM = Provider.of<PropiedadesViewModel>(context);
-    final propiedadesAlquiladas =
-    propiedadesVM.propiedades.where((p) => p.estaAlquilada).toList();
+    final todasPropiedades = propiedadesVM.propiedades;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -168,8 +190,8 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                   style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 8),
 
-              if (propiedadesAlquiladas.isEmpty)
-                const Text("No hay propiedades alquiladas",
+              if (todasPropiedades.isEmpty)
+                const Text("No hay propiedades registradas",
                     style: TextStyle(color: Colors.orange))
               else
                 DropdownButtonFormField<Propiedad>(
@@ -187,7 +209,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                   ),
                   icon: const Icon(Icons.arrow_drop_down, color: Colors.amber),
                   selectedItemBuilder: (context) {
-                    return propiedadesAlquiladas.map((prop) {
+                    return todasPropiedades.map((prop) {
                       return Row(
                         children: [
                           const Icon(Icons.home, color: Colors.amber, size: 20),
@@ -208,7 +230,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                       );
                     }).toList();
                   },
-                  items: propiedadesAlquiladas.map((prop) {
+                  items: todasPropiedades.map((prop) {
                     return DropdownMenuItem(
                       value: prop,
                       child: _buildPropiedadItem(prop),
@@ -220,10 +242,42 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                       if (value != null) {
                         _montoController.text =
                             value.alquilerMensual.toString();
+                        // ✅ NUEVO: Auto-completar inquilino si ya existe
+                        if (value.inquilinoNombre != null && value.inquilinoNombre!.isNotEmpty) {
+                          _inquilinoController.text = value.inquilinoNombre!;
+                        } else {
+                          _inquilinoController.clear();
+                        }
                       }
                     });
                   },
                 ),
+
+              const SizedBox(height: 20),
+
+              // -------------------- INQUILINO -------------------- ✅ NUEVO
+              const Text("Nombre del Inquilino",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              const SizedBox(height: 8),
+
+              TextFormField(
+                controller: _inquilinoController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.person, color: Colors.amber),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  hintText: "Ej: Philip J. Fry",
+                  hintStyle: const TextStyle(color: Colors.white38),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return "Obligatorio";
+                  return null;
+                },
+              ),
 
               const SizedBox(height: 20),
 
@@ -361,7 +415,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed:
-                  _guardando || propiedadesAlquiladas.isEmpty ? null : _guardarPago,
+                  _guardando || todasPropiedades.isEmpty ? null : _guardarPago,
                 ),
               ),
             ],

@@ -115,7 +115,7 @@ class TableroVista extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // === GRID DE ACCIONES ===
+              // === GRID DE ACCIONES (2x2) ===
               const Text(
                 'Acciones Rápidas',
                 style: TextStyle(
@@ -127,11 +127,12 @@ class TableroVista extends StatelessWidget {
               const SizedBox(height: 12),
 
               GridView.count(
-                crossAxisCount: 3,
+                crossAxisCount: 2, // ✅ CAMBIO: 2 columnas
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
+                childAspectRatio: 1.3, // ✅ Ajuste para mejor proporción
                 children: [
                   BotonAccion(
                     icono: Icons.home_work_outlined,
@@ -152,22 +153,10 @@ class TableroVista extends StatelessWidget {
                     onTap: () => nav.cambiarIndice(3),
                   ),
                   BotonAccion(
-                    icono: Icons.campaign_outlined,
-                    texto: 'Avisos',
-                    color: Colors.lightBlueAccent,
-                    onTap: () => nav.cambiarIndice(4),
-                  ),
-                  BotonAccion(
-                    icono: Icons.bug_report,
-                    texto: 'Errores',
-                    color: Colors.redAccent,
-                    onTap: () => nav.cambiarIndice(5),
-                  ),
-                  BotonAccion(
-                    icono: Icons.more_horiz,
-                    texto: 'Ver más',
+                    icono: Icons.people, // ✅ NUEVO
+                    texto: 'Propietarios',
                     color: Colors.purpleAccent,
-                    onTap: () => nav.cambiarIndice(6),
+                    onTap: () => nav.cambiarIndice(4),
                   ),
                 ],
               ),
@@ -223,31 +212,6 @@ class TableroVista extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white54,
             fontSize: 11,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentStat(String value, String label, Color color, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 32),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: color.withOpacity(0.8),
-            fontSize: 12,
           ),
         ),
       ],

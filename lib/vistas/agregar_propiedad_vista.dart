@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../modelos/propiedad.dart';
 import '../vista_modelos/propiedades_vm.dart';
+import '../vista_modelos/propietarios_vm.dart'; // ✅ NUEVO
 import '../servicios/storage_servicio.dart';
 
 class AgregarPropiedadVista extends StatefulWidget {
@@ -22,9 +23,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   final _alquilerController = TextEditingController();
   final _imagenUrlController = TextEditingController();
 
-  // 🔥 LO QUE TE FALTABA:
   String _estadoSeleccionado = 'disponible';
-  final TextEditingController _inquilinoController = TextEditingController();
+
+  // ✅ NUEVO: Propietario seleccionado
+  String? _propietarioIdSeleccionado;
 
   final ImagePicker _picker = ImagePicker();
   File? _imagenSeleccionada;
@@ -40,7 +42,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       _alquilerController.text = widget.propiedad!.alquilerMensual.toString();
       _imagenUrlController.text = widget.propiedad!.imagen;
       _estadoSeleccionado = widget.propiedad!.estado;
-      _inquilinoController.text = widget.propiedad!.inquilinoNombre ?? '';
+      _propietarioIdSeleccionado = widget.propiedad!.propietarioId; // ✅ NUEVO
     }
   }
 
@@ -50,7 +52,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     _direccionController.dispose();
     _alquilerController.dispose();
     _imagenUrlController.dispose();
-    _inquilinoController.dispose();
     super.dispose();
   }
 
@@ -111,12 +112,27 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   Future<void> _guardarPropiedad() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // ✅ NUEVO: Validar que tenga propietario
+    if (_propietarioIdSeleccionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Debes seleccionar un propietario'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _guardando = true);
 
     try {
       final vm = Provider.of<PropiedadesViewModel>(context, listen: false);
+      final propietariosVM = Provider.of<PropietariosViewModel>(context, listen: false);
 
       final imagenUrl = await _subirImagenSiEsNecesario();
+
+      // ✅ NUEVO: Obtener nombre del propietario
+      final propietario = propietariosVM.obtenerPorId(_propietarioIdSeleccionado!);
 
       final propiedad = Propiedad(
         id: widget.propiedad?.id ?? '',
@@ -125,12 +141,12 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
         alquilerMensual: double.parse(_alquilerController.text.trim()),
         imagen: imagenUrl ?? '',
         estado: _estadoSeleccionado,
-        inquilinoNombre: _estadoSeleccionado == 'alquilada'
-            ? _inquilinoController.text.trim()
-            : null,
-        inquilinoId: _estadoSeleccionado == 'alquilada'
-            ? 'INQ_${DateTime.now().millisecondsSinceEpoch}'
-            : null,
+        // ✅ El inquilino se asigna cuando se hace un pago
+        inquilinoNombre: widget.propiedad?.inquilinoNombre,
+        inquilinoId: widget.propiedad?.inquilinoId,
+        // ✅ Guardar propietario
+        propietarioId: _propietarioIdSeleccionado,
+        propietarioNombre: propietario?.nombre ?? 'Sin nombre',
       );
 
       if (widget.propiedad == null) {
@@ -168,6 +184,8 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
 
   @override
   Widget build(BuildContext context) {
+    final propietariosVM = Provider.of<PropietariosViewModel>(context); // ✅ NUEVO
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -283,7 +301,116 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   return null;
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // ✅ NUEVO: Selector de propietario
+              const Text(
+                'Propietario',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              propietariosVM.propietarios.isEmpty
+                  ? Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'No hay propietarios registrados.\nVe a la sección Propietarios para agregar uno.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+                  : DropdownButtonFormField<String>(
+                value: _propietarioIdSeleccionado,
+                dropdownColor: const Color(0xFF1E1E1E),
+                isExpanded: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.person, color: Colors.purple),
+                ),
+                hint: const Text(
+                  'Selecciona un propietario',
+                  style: TextStyle(color: Colors.white54),
+                ),
+                items: propietariosVM.propietarios.map((prop) {
+                  return DropdownMenuItem(
+                    value: prop.id,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.purple.withOpacity(0.2),
+                          child: Text(
+                            prop.nombre[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.purple,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // ⛑️ FIX: Usamos "Flexible" + "Column mainAxisSize: min"
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min, // <<< evita overflow
+                            children: [
+                              Text(
+                                prop.nombre,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                prop.telefono,
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _propietarioIdSeleccionado = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Selecciona un propietario';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
 
               const Text(
                 'Estado de la Propiedad',
@@ -291,6 +418,15 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'El inquilino se asignará automáticamente al registrar un pago',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
               const SizedBox(height: 12),
@@ -311,15 +447,16 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                           Text('Disponible', style: TextStyle(color: Colors.white)),
                         ],
                       ),
+                      subtitle: const Text(
+                        'Sin inquilino asignado',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                       value: 'disponible',
                       groupValue: _estadoSeleccionado,
                       activeColor: Colors.amber,
                       onChanged: (value) {
                         setState(() {
                           _estadoSeleccionado = value!;
-                          if (value == 'disponible') {
-                            _inquilinoController.clear();
-                          }
                         });
                       },
                     ),
@@ -334,6 +471,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                           Text('Alquilada', style: TextStyle(color: Colors.white)),
                         ],
                       ),
+                      subtitle: const Text(
+                        'Con inquilino actual',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
                       value: 'alquilada',
                       groupValue: _estadoSeleccionado,
                       activeColor: Colors.amber,
@@ -346,52 +487,15 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              if (_estadoSeleccionado == 'alquilada') ...[
-                const Text(
-                  'Nombre del Inquilino',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                TextFormField(
-                  controller: _inquilinoController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Ej: Philip J. Fry',
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    prefixIcon: const Icon(Icons.person, color: Colors.amber),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.amber, width: 2),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (_estadoSeleccionado == 'alquilada' &&
-                        (value == null || value.trim().isEmpty)) {
-                      return 'El nombre del inquilino es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-              ],
+              const SizedBox(height: 24),
 
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: (_guardando || _subiendoImagen) ? null : _guardarPropiedad,
+                  onPressed: (_guardando || _subiendoImagen || propietariosVM.propietarios.isEmpty)
+                      ? null
+                      : _guardarPropiedad,
                   icon: (_guardando || _subiendoImagen)
                       ? const SizedBox(
                     width: 20,
