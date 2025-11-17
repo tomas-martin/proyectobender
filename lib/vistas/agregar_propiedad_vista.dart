@@ -22,7 +22,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   final _alquilerController = TextEditingController();
   final _imagenUrlController = TextEditingController();
 
-  // 🔥 LAS VARIABLES QUE TE FALTABAN 🔥
+  // 🔥 LO QUE TE FALTABA:
   String _estadoSeleccionado = 'disponible';
   final TextEditingController _inquilinoController = TextEditingController();
 
@@ -39,8 +39,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       _direccionController.text = widget.propiedad!.direccion;
       _alquilerController.text = widget.propiedad!.alquilerMensual.toString();
       _imagenUrlController.text = widget.propiedad!.imagen;
-
-      // 🔥 ESTO DABA ERROR ANTES PORQUE NO EXISTÍAN
       _estadoSeleccionado = widget.propiedad!.estado;
       _inquilinoController.text = widget.propiedad!.inquilinoNombre ?? '';
     }
@@ -52,7 +50,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     _direccionController.dispose();
     _alquilerController.dispose();
     _imagenUrlController.dispose();
-    _inquilinoController.dispose(); // 🔥 IMPORTANTE
+    _inquilinoController.dispose();
     super.dispose();
   }
 
@@ -93,8 +91,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
         await storageService.eliminarImagen(widget.propiedad!.imagen);
       }
 
-      final url =
-      await storageService.subirImagen(_imagenSeleccionada!, 'propiedades');
+      final url = await storageService.subirImagen(_imagenSeleccionada!, 'propiedades');
 
       setState(() => _subiendoImagen = false);
       return url;
@@ -174,8 +171,9 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title:
-        Text(widget.propiedad == null ? 'Nueva Propiedad' : 'Editar Propiedad'),
+        title: Text(widget.propiedad == null
+            ? 'Nueva Propiedad'
+            : 'Editar Propiedad'),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
@@ -204,9 +202,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: _guardando
-                          ? null
-                          : () {
+                      onPressed: _guardando ? null : () {
                         setState(() => _imagenSeleccionada = null);
                       },
                       icon: const Icon(Icons.clear),
@@ -243,20 +239,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 24),
 
-              _buildCampoTexto(
-                'Título',
-                _tituloController,
-                'Ej: Depto Fry',
-                Icons.title,
-              ),
+              _buildCampoTexto('Título', _tituloController, 'Ej: Depto Fry', Icons.title),
               const SizedBox(height: 20),
 
-              _buildCampoTexto(
-                'Dirección',
-                _direccionController,
-                'Ej: Calle Futuro 101',
-                Icons.location_on,
-              ),
+              _buildCampoTexto('Dirección', _direccionController, 'Ej: Calle Futuro 101', Icons.location_on),
               const SizedBox(height: 20),
 
               const Text(
@@ -276,8 +262,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   hintText: 'Ej: 1200',
                   hintStyle: TextStyle(color: Colors.grey[600]),
                   prefixText: '\$ ',
-                  prefixStyle:
-                  const TextStyle(color: Colors.amber, fontSize: 18),
+                  prefixStyle: const TextStyle(color: Colors.amber, fontSize: 18),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
                   border: OutlineInputBorder(
@@ -285,8 +270,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                    const BorderSide(color: Colors.amber, width: 2),
+                    borderSide: const BorderSide(color: Colors.amber, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -322,11 +306,9 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                     RadioListTile<String>(
                       title: const Row(
                         children: [
-                          Icon(Icons.check_circle,
-                              color: Colors.green, size: 20),
+                          Icon(Icons.check_circle, color: Colors.green, size: 20),
                           SizedBox(width: 8),
-                          Text('Disponible',
-                              style: TextStyle(color: Colors.white)),
+                          Text('Disponible', style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       value: 'disponible',
@@ -341,14 +323,15 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                         });
                       },
                     ),
+
                     const Divider(color: Colors.white12, height: 1),
+
                     RadioListTile<String>(
                       title: const Row(
                         children: [
                           Icon(Icons.home, color: Colors.blue, size: 20),
                           SizedBox(width: 8),
-                          Text('Alquilada',
-                              style: TextStyle(color: Colors.white)),
+                          Text('Alquilada', style: TextStyle(color: Colors.white)),
                         ],
                       ),
                       value: 'alquilada',
@@ -375,14 +358,14 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                   ),
                 ),
                 const SizedBox(height: 8),
+
                 TextFormField(
                   controller: _inquilinoController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Ej: Philip J. Fry',
                     hintStyle: TextStyle(color: Colors.grey[600]),
-                    prefixIcon:
-                    const Icon(Icons.person, color: Colors.amber),
+                    prefixIcon: const Icon(Icons.person, color: Colors.amber),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.05),
                     border: OutlineInputBorder(
@@ -390,8 +373,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      const BorderSide(color: Colors.amber, width: 2),
+                      borderSide: const BorderSide(color: Colors.amber, width: 2),
                     ),
                   ),
                   validator: (value) {
@@ -409,8 +391,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed:
-                  (_guardando || _subiendoImagen) ? null : _guardarPropiedad,
+                  onPressed: (_guardando || _subiendoImagen) ? null : _guardarPropiedad,
                   icon: (_guardando || _subiendoImagen)
                       ? const SizedBox(
                     width: 20,

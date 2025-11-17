@@ -5,17 +5,14 @@ class Propiedad {
   final double alquilerMensual;
   final String imagen;
   final String estado; // 'disponible' o 'alquilada'
-
-  // 🔵 Inquilino
   final String? inquilinoId;
   final String? inquilinoNombre;
-
-  // 🔵 Propietario (AGREGADO)
-  final String? propietarioId;
-  final String? propietarioNombre;
-
   final String tipo;
   final String fechaRegistro;
+
+  // ✅ NUEVO: Propietario
+  final String? propietarioId;
+  final String? propietarioNombre;
 
   Propiedad({
     required this.id,
@@ -26,37 +23,42 @@ class Propiedad {
     this.estado = 'disponible',
     this.inquilinoId,
     this.inquilinoNombre,
-
-    // 🔵 Propietario (AGREGADO)
-    this.propietarioId,
-    this.propietarioNombre,
-
     this.tipo = 'Departamento',
     String? fechaRegistro,
+    this.propietarioId,
+    this.propietarioNombre,
   }) : fechaRegistro = fechaRegistro ?? _getFechaActual();
 
-  // 🔶 Helper para obtener fecha actual formateada
   static String _getFechaActual() {
     final now = DateTime.now();
     return '${now.day}/${now.month}/${now.year}';
   }
 
-  // 🔶 Leer desde Firestore
   factory Propiedad.fromMap(String id, Map<String, dynamic> data) {
     double alquiler = 0.0;
     final alquilerData = data['alquilerMensual'];
 
-    if (alquilerData is int) alquiler = alquilerData.toDouble();
-    else if (alquilerData is double) alquiler = alquilerData;
-    else if (alquilerData is String) alquiler = double.tryParse(alquilerData) ?? 0.0;
+    if (alquilerData is int) {
+      alquiler = alquilerData.toDouble();
+    } else if (alquilerData is double) {
+      alquiler = alquilerData;
+    } else if (alquilerData is String) {
+      alquiler = double.tryParse(alquilerData) ?? 0.0;
+    }
 
     String fechaRegistro = _getFechaActual();
     if (data['createdAt'] != null) {
       try {
         final timestamp = data['createdAt'];
-        final date = timestamp is DateTime ? timestamp : timestamp.toDate();
-        fechaRegistro = '${date.day}/${date.month}/${date.year}';
-      } catch (_) {}
+        if (timestamp is DateTime) {
+          fechaRegistro = '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+        } else {
+          final date = timestamp.toDate();
+          fechaRegistro = '${date.day}/${date.month}/${date.year}';
+        }
+      } catch (e) {
+        fechaRegistro = _getFechaActual();
+      }
     }
 
     return Propiedad(
@@ -66,21 +68,15 @@ class Propiedad {
       alquilerMensual: alquiler,
       imagen: data['imagen']?.toString() ?? '',
       estado: data['estado']?.toString() ?? 'disponible',
-
-      // 🔵 Inquilino
       inquilinoId: data['inquilinoId']?.toString(),
       inquilinoNombre: data['inquilinoNombre']?.toString(),
-
-      // 🔵 Propietario (AGREGADO)
-      propietarioId: data['propietarioId']?.toString(),
-      propietarioNombre: data['propietarioNombre']?.toString(),
-
       tipo: data['tipo']?.toString() ?? 'Departamento',
       fechaRegistro: fechaRegistro,
+      propietarioId: data['propietarioId']?.toString(),
+      propietarioNombre: data['propietarioNombre']?.toString(),
     );
   }
 
-  // 🔶 Guardar en Firestore
   Map<String, dynamic> toMap() {
     return {
       'titulo': titulo,
@@ -88,16 +84,11 @@ class Propiedad {
       'alquilerMensual': alquilerMensual,
       'imagen': imagen,
       'estado': estado,
-
-      // 🔵 Inquilino
       'inquilinoId': inquilinoId,
       'inquilinoNombre': inquilinoNombre,
-
-      // 🔵 Propietario (AGREGADO)
+      'tipo': tipo,
       'propietarioId': propietarioId,
       'propietarioNombre': propietarioNombre,
-
-      'tipo': tipo,
     };
   }
 
@@ -110,17 +101,12 @@ class Propiedad {
     double? alquilerMensual,
     String? imagen,
     String? estado,
-
-    // 🔵 Inquilino
     String? inquilinoId,
     String? inquilinoNombre,
-
-    // 🔵 Propietario (AGREGADO)
-    String? propietarioId,
-    String? propietarioNombre,
-
     String? tipo,
     String? fechaRegistro,
+    String? propietarioId,
+    String? propietarioNombre,
   }) {
     return Propiedad(
       id: id ?? this.id,
@@ -129,15 +115,12 @@ class Propiedad {
       alquilerMensual: alquilerMensual ?? this.alquilerMensual,
       imagen: imagen ?? this.imagen,
       estado: estado ?? this.estado,
-
       inquilinoId: inquilinoId ?? this.inquilinoId,
       inquilinoNombre: inquilinoNombre ?? this.inquilinoNombre,
-
-      propietarioId: propietarioId ?? this.propietarioId,
-      propietarioNombre: propietarioNombre ?? this.propietarioNombre,
-
       tipo: tipo ?? this.tipo,
       fechaRegistro: fechaRegistro ?? this.fechaRegistro,
+      propietarioId: propietarioId ?? this.propietarioId,
+      propietarioNombre: propietarioNombre ?? this.propietarioNombre,
     );
   }
 }

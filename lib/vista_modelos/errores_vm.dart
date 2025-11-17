@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:probando_app_bender_v0/modelos/error.dart';
+import 'package:probando_app_bender_v0/modelos/error_sistema.dart';
 import '../modelos/aviso.dart';
 
 class ErroresViewModel extends ChangeNotifier {
