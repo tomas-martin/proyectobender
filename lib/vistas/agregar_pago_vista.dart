@@ -8,13 +8,13 @@ import '../vista_modelos/propiedades_vm.dart';
 class AgregarPagoVista extends StatefulWidget {
   final Pago? pago;
   final Propiedad? propiedadPreseleccionada;
-  final String? propiedadId; // ✅ AGREGADO
+  final String? propiedadId;
 
   const AgregarPagoVista({
     super.key,
     this.pago,
     this.propiedadPreseleccionada,
-    this.propiedadId, // ✅ AGREGADO
+    this.propiedadId,
   });
 
   @override
@@ -33,6 +33,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   @override
   void initState() {
     super.initState();
+
     _propiedadSeleccionada = widget.propiedadPreseleccionada;
 
     if (widget.pago != null) {
@@ -41,10 +42,10 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
       _fechaSeleccionada = widget.pago!.fecha;
     }
 
-    // ✅ NUEVO: Preseleccionar propiedad si viene propiedadId
     if (widget.propiedadId != null && widget.propiedadPreseleccionada == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final propiedadesVM = Provider.of<PropiedadesViewModel>(context, listen: false);
+        final propiedadesVM =
+        Provider.of<PropiedadesViewModel>(context, listen: false);
         final prop = propiedadesVM.propiedades.firstWhere(
               (p) => p.id == widget.propiedadId,
           orElse: () => propiedadesVM.propiedades.first,
@@ -68,7 +69,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
     if (_propiedadSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('❌ Selecciona una propiedad'),
+          content: Text("Selecciona una propiedad"),
           backgroundColor: Colors.red,
         ),
       );
@@ -81,11 +82,11 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
       final pagosVM = Provider.of<PagosViewModel>(context, listen: false);
 
       final pago = Pago(
-        id: widget.pago?.id ?? '',
+        id: widget.pago?.id ?? "",
         propiedadId: _propiedadSeleccionada!.id,
         propiedadTitulo: _propiedadSeleccionada!.titulo,
-        inquilinoId: _propiedadSeleccionada!.inquilinoId ?? '',
-        inquilinoNombre: _propiedadSeleccionada!.inquilinoNombre ?? 'Sin inquilino',
+        inquilinoId: _propiedadSeleccionada!.inquilinoId ?? "",
+        inquilinoNombre: _propiedadSeleccionada!.inquilinoNombre ?? "Sin inquilino",
         monto: double.parse(_montoController.text.trim()),
         estado: _estadoSeleccionado,
         fecha: _fechaSeleccionada,
@@ -97,44 +98,62 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
         await pagosVM.actualizar(widget.pago!.id, pago);
       }
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.pago == null
-                ? '✅ Pago registrado correctamente'
-                : '✅ Pago actualizado correctamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error al guardar: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al guardar: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _guardando = false);
-      }
+      if (mounted) setState(() => _guardando = false);
     }
+  }
+
+  Widget _buildPropiedadItem(Propiedad prop) {
+    return Row(
+      children: [
+        const Icon(Icons.home, color: Colors.amber, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                prop.titulo,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                "${prop.inquilinoNombre} • \$${prop.alquilerMensual.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        )
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final propiedadesVM = Provider.of<PropiedadesViewModel>(context);
-    final propiedadesAlquiladas = propiedadesVM.propiedades
-        .where((p) => p.estaAlquilada)
-        .toList();
+    final propiedadesAlquiladas =
+    propiedadesVM.propiedades.where((p) => p.estaAlquilada).toList();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(widget.pago == null ? 'Registrar Pago' : 'Editar Pago'),
+        title: Text(widget.pago == null ? "Registrar Pago" : "Editar Pago"),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
@@ -144,261 +163,141 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Seleccionar propiedad
-              const Text(
-                'Propiedad',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // -------------------- PROPIEDAD --------------------
+              const Text("Propiedad",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 8),
 
               if (propiedadesAlquiladas.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.warning, color: Colors.orange),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'No hay propiedades alquiladas. Primero marca una propiedad como "Alquilada".',
-                          style: TextStyle(color: Colors.orange),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
+                const Text("No hay propiedades alquiladas",
+                    style: TextStyle(color: Colors.orange))
               else
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[700]!),
+                DropdownButtonFormField<Propiedad>(
+                  value: _propiedadSeleccionada,
+                  dropdownColor: const Color(0xFF1E1E1E),
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: DropdownButtonFormField<Propiedad>(
-                    value: _propiedadSeleccionada,
-                    dropdownColor: const Color(0xFF1E1E1E),
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    icon: const Icon(Icons.arrow_drop_down, color: Colors.amber),
-                    hint: Row(
-                      children: const [
-                        Icon(Icons.home, color: Colors.amber, size: 20),
-                        SizedBox(width: 12),
-                        Text(
-                          'Selecciona una propiedad',
-                          style: TextStyle(color: Colors.white54, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                    selectedItemBuilder: (context) {
-                      return propiedadesAlquiladas.map((prop) {
-                        return Row(
-                          children: [
-                            const Icon(Icons.home, color: Colors.amber, size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    prop.titulo,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    '${prop.inquilinoNombre} • \${prop.alquilerMensual.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 11,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList();
-                    },
-                    items: propiedadesAlquiladas.map((prop) {
-                      return DropdownMenuItem(
-                        value: prop,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.amber),
+                  selectedItemBuilder: (context) {
+                    return propiedadesAlquiladas.map((prop) {
+                      return Row(
+                        children: [
+                          const Icon(Icons.home, color: Colors.amber, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
                               prop.titulo,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 15,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${prop.inquilinoNombre} • \${prop.alquilerMensual.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _propiedadSeleccionada = value;
-                        if (value != null) {
-                          _montoController.text = value.alquilerMensual.toString();
-                        }
-                      });
-                    },
-                  ),
+                    }).toList();
+                  },
+                  items: propiedadesAlquiladas.map((prop) {
+                    return DropdownMenuItem(
+                      value: prop,
+                      child: _buildPropiedadItem(prop),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _propiedadSeleccionada = value;
+                      if (value != null) {
+                        _montoController.text =
+                            value.alquilerMensual.toString();
+                      }
+                    });
+                  },
                 ),
+
               const SizedBox(height: 20),
 
-              // Monto
-              const Text(
-                'Monto',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // -------------------- MONTO --------------------
+              const Text("Monto",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 8),
+
               TextFormField(
                 controller: _montoController,
                 style: const TextStyle(color: Colors.white),
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  hintText: 'Ej: 1500',
-                  hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixText: '\$ ',
-                  prefixStyle: const TextStyle(color: Colors.amber, fontSize: 18),
-                  prefixIcon: const Icon(Icons.attach_money, color: Colors.amber),
+                  prefixIcon:
+                  const Icon(Icons.attach_money, color: Colors.amber),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.amber, width: 2),
-                  ),
+                  hintText: "Ej: 15000",
+                  hintStyle: const TextStyle(color: Colors.white38),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'El monto es obligatorio';
-                  }
-                  if (double.tryParse(value.trim()) == null) {
-                    return 'Ingresa un número válido';
-                  }
+                validator: (v) {
+                  if (v == null || v.isEmpty) return "Obligatorio";
+                  if (double.tryParse(v) == null) return "Número inválido";
                   return null;
                 },
               ),
+
               const SizedBox(height: 20),
 
-              // Estado
-              const Text(
-                'Estado del Pago',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
+              // -------------------- ESTADO --------------------
+              const Text("Estado del Pago",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              const SizedBox(height: 8),
+
               Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[700]!),
                 ),
                 child: Column(
                   children: [
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.green, size: 20),
-                          SizedBox(width: 8),
-                          Text('Pagado', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      value: 'pagado',
+                    RadioListTile(
+                      title: const Text("Pagado", style: TextStyle(color: Colors.white)),
+                      value: "pagado",
                       groupValue: _estadoSeleccionado,
-                      activeColor: Colors.amber,
-                      onChanged: (value) {
-                        setState(() => _estadoSeleccionado = value!);
-                      },
+                      onChanged: (v) => setState(() => _estadoSeleccionado = v!),
                     ),
-                    const Divider(color: Colors.white12, height: 1),
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.pending, color: Colors.orange, size: 20),
-                          SizedBox(width: 8),
-                          Text('Pendiente', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      value: 'pendiente',
+                    RadioListTile(
+                      title: const Text("Pendiente", style: TextStyle(color: Colors.white)),
+                      value: "pendiente",
                       groupValue: _estadoSeleccionado,
-                      activeColor: Colors.amber,
-                      onChanged: (value) {
-                        setState(() => _estadoSeleccionado = value!);
-                      },
+                      onChanged: (v) => setState(() => _estadoSeleccionado = v!),
                     ),
-                    const Divider(color: Colors.white12, height: 1),
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.warning, color: Colors.red, size: 20),
-                          SizedBox(width: 8),
-                          Text('Moroso', style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                      value: 'moroso',
+                    RadioListTile(
+                      title: const Text("Moroso", style: TextStyle(color: Colors.white)),
+                      value: "moroso",
                       groupValue: _estadoSeleccionado,
-                      activeColor: Colors.amber,
-                      onChanged: (value) {
-                        setState(() => _estadoSeleccionado = value!);
-                      },
+                      onChanged: (v) => setState(() => _estadoSeleccionado = v!),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 20),
 
-              // Fecha
-              const Text(
-                'Fecha de Pago',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // -------------------- FECHA --------------------
+              const Text("Fecha de Pago",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 8),
+
               InkWell(
                 onTap: () async {
                   final fecha = await showDatePicker(
@@ -406,58 +305,63 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                     initialDate: _fechaSeleccionada,
                     firstDate: DateTime(2020),
                     lastDate: DateTime(2030),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          dialogBackgroundColor: const Color(0xFF1E1E1E),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   if (fecha != null) {
                     setState(() => _fechaSeleccionada = fecha);
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[700]!),
                   ),
                   child: Row(
                     children: [
                       const Icon(Icons.calendar_today, color: Colors.amber),
                       const SizedBox(width: 12),
                       Text(
-                        '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                        "${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}",
+                        style:
+                        const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
 
-              // Botón guardar
+              const SizedBox(height: 30),
+
+              // -------------------- BOTÓN --------------------
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 55,
                 child: ElevatedButton.icon(
-                  onPressed: (_guardando || propiedadesAlquiladas.isEmpty)
-                      ? null
-                      : _guardarPago,
                   icon: _guardando
                       ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.black,
-                    ),
-                  )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.black, strokeWidth: 2))
                       : const Icon(Icons.save),
-                  label: Text(_guardando ? 'Guardando...' : 'Guardar Pago'),
+                  label: Text(
+                      _guardando ? "Guardando..." : "Guardar Pago"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
+                  onPressed:
+                  _guardando || propiedadesAlquiladas.isEmpty ? null : _guardarPago,
                 ),
               ),
             ],
