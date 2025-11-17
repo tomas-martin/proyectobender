@@ -5,10 +5,17 @@ class Propiedad {
   final double alquilerMensual;
   final String imagen;
   final String estado; // 'disponible' o 'alquilada'
-  final String? inquilinoId; // ID del inquilino (null si está disponible)
-  final String? inquilinoNombre; // Nombre del inquilino
-  final String tipo; // ✅ AGREGADO - Ej: 'Departamento', 'Casa', 'Local'
-  final String fechaRegistro; // ✅ AGREGADO - Fecha de registro formateada
+
+  // 🔵 Inquilino
+  final String? inquilinoId;
+  final String? inquilinoNombre;
+
+  // 🔵 Propietario (AGREGADO)
+  final String? propietarioId;
+  final String? propietarioNombre;
+
+  final String tipo;
+  final String fechaRegistro;
 
   Propiedad({
     required this.id,
@@ -19,46 +26,37 @@ class Propiedad {
     this.estado = 'disponible',
     this.inquilinoId,
     this.inquilinoNombre,
-    this.tipo = 'Departamento', // ✅ VALOR POR DEFECTO
-    String? fechaRegistro, // ✅ AGREGADO como opcional
+
+    // 🔵 Propietario (AGREGADO)
+    this.propietarioId,
+    this.propietarioNombre,
+
+    this.tipo = 'Departamento',
+    String? fechaRegistro,
   }) : fechaRegistro = fechaRegistro ?? _getFechaActual();
 
-  // ✅ Helper para obtener fecha actual formateada
+  // 🔶 Helper para obtener fecha actual formateada
   static String _getFechaActual() {
     final now = DateTime.now();
     return '${now.day}/${now.month}/${now.year}';
   }
 
-  // Para leer desde Firestore
+  // 🔶 Leer desde Firestore
   factory Propiedad.fromMap(String id, Map<String, dynamic> data) {
-    // Conversión segura de número a double
     double alquiler = 0.0;
     final alquilerData = data['alquilerMensual'];
 
-    if (alquilerData is int) {
-      alquiler = alquilerData.toDouble();
-    } else if (alquilerData is double) {
-      alquiler = alquilerData;
-    } else if (alquilerData is String) {
-      alquiler = double.tryParse(alquilerData) ?? 0.0;
-    }
+    if (alquilerData is int) alquiler = alquilerData.toDouble();
+    else if (alquilerData is double) alquiler = alquilerData;
+    else if (alquilerData is String) alquiler = double.tryParse(alquilerData) ?? 0.0;
 
-    // ✅ Convertir timestamp a fecha formateada
     String fechaRegistro = _getFechaActual();
     if (data['createdAt'] != null) {
       try {
         final timestamp = data['createdAt'];
-        if (timestamp is DateTime) {
-          fechaRegistro = '${timestamp.day}/${timestamp.month}/${timestamp.year}';
-        } else {
-          // Si es Timestamp de Firebase
-          final date = timestamp.toDate();
-          fechaRegistro = '${date.day}/${date.month}/${date.year}';
-        }
-      } catch (e) {
-        // Si falla, usar fecha actual
-        fechaRegistro = _getFechaActual();
-      }
+        final date = timestamp is DateTime ? timestamp : timestamp.toDate();
+        fechaRegistro = '${date.day}/${date.month}/${date.year}';
+      } catch (_) {}
     }
 
     return Propiedad(
@@ -68,14 +66,21 @@ class Propiedad {
       alquilerMensual: alquiler,
       imagen: data['imagen']?.toString() ?? '',
       estado: data['estado']?.toString() ?? 'disponible',
+
+      // 🔵 Inquilino
       inquilinoId: data['inquilinoId']?.toString(),
       inquilinoNombre: data['inquilinoNombre']?.toString(),
-      tipo: data['tipo']?.toString() ?? 'Departamento', // ✅ LEER DE FIREBASE
-      fechaRegistro: fechaRegistro, // ✅ AGREGAR
+
+      // 🔵 Propietario (AGREGADO)
+      propietarioId: data['propietarioId']?.toString(),
+      propietarioNombre: data['propietarioNombre']?.toString(),
+
+      tipo: data['tipo']?.toString() ?? 'Departamento',
+      fechaRegistro: fechaRegistro,
     );
   }
 
-  // Para guardar en Firestore
+  // 🔶 Guardar en Firestore
   Map<String, dynamic> toMap() {
     return {
       'titulo': titulo,
@@ -83,17 +88,21 @@ class Propiedad {
       'alquilerMensual': alquilerMensual,
       'imagen': imagen,
       'estado': estado,
+
+      // 🔵 Inquilino
       'inquilinoId': inquilinoId,
       'inquilinoNombre': inquilinoNombre,
-      'tipo': tipo, // ✅ GUARDAR EN FIREBASE
-      // No guardamos fechaRegistro porque se maneja con createdAt en Firestore
+
+      // 🔵 Propietario (AGREGADO)
+      'propietarioId': propietarioId,
+      'propietarioNombre': propietarioNombre,
+
+      'tipo': tipo,
     };
   }
 
-  // Método helper para verificar si está alquilada
   bool get estaAlquilada => estado == 'alquilada';
 
-  // Método para crear copia con cambios
   Propiedad copyWith({
     String? id,
     String? titulo,
@@ -101,10 +110,17 @@ class Propiedad {
     double? alquilerMensual,
     String? imagen,
     String? estado,
+
+    // 🔵 Inquilino
     String? inquilinoId,
     String? inquilinoNombre,
-    String? tipo, // ✅ AGREGADO
-    String? fechaRegistro, // ✅ AGREGADO
+
+    // 🔵 Propietario (AGREGADO)
+    String? propietarioId,
+    String? propietarioNombre,
+
+    String? tipo,
+    String? fechaRegistro,
   }) {
     return Propiedad(
       id: id ?? this.id,
@@ -113,10 +129,15 @@ class Propiedad {
       alquilerMensual: alquilerMensual ?? this.alquilerMensual,
       imagen: imagen ?? this.imagen,
       estado: estado ?? this.estado,
+
       inquilinoId: inquilinoId ?? this.inquilinoId,
       inquilinoNombre: inquilinoNombre ?? this.inquilinoNombre,
-      tipo: tipo ?? this.tipo, // ✅ AGREGADO
-      fechaRegistro: fechaRegistro ?? this.fechaRegistro, // ✅ AGREGADO
+
+      propietarioId: propietarioId ?? this.propietarioId,
+      propietarioNombre: propietarioNombre ?? this.propietarioNombre,
+
+      tipo: tipo ?? this.tipo,
+      fechaRegistro: fechaRegistro ?? this.fechaRegistro,
     );
   }
 }
