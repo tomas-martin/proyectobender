@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../modelos/propiedad.dart';
 import '../vista_modelos/propiedades_vm.dart';
-import '../vista_modelos/propietarios_vm.dart'; // ✅ NUEVO
+import '../vista_modelos/propietarios_vm.dart';
 import '../servicios/storage_servicio.dart';
 
 class AgregarPropiedadVista extends StatefulWidget {
@@ -24,8 +24,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   final _imagenUrlController = TextEditingController();
 
   String _estadoSeleccionado = 'disponible';
-
-  // ✅ NUEVO: Propietario seleccionado
+  String _tipoSeleccionado = 'Departamento'; // ✅ NUEVO: Tipo de propiedad
   String? _propietarioIdSeleccionado;
 
   final ImagePicker _picker = ImagePicker();
@@ -42,7 +41,8 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       _alquilerController.text = widget.propiedad!.alquilerMensual.toString();
       _imagenUrlController.text = widget.propiedad!.imagen;
       _estadoSeleccionado = widget.propiedad!.estado;
-      _propietarioIdSeleccionado = widget.propiedad!.propietarioId; // ✅ NUEVO
+      _tipoSeleccionado = widget.propiedad!.tipo; // ✅ NUEVO
+      _propietarioIdSeleccionado = widget.propiedad!.propietarioId;
     }
   }
 
@@ -112,7 +112,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
   Future<void> _guardarPropiedad() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // ✅ NUEVO: Validar que tenga propietario
     if (_propietarioIdSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -130,8 +129,6 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
       final propietariosVM = Provider.of<PropietariosViewModel>(context, listen: false);
 
       final imagenUrl = await _subirImagenSiEsNecesario();
-
-      // ✅ NUEVO: Obtener nombre del propietario
       final propietario = propietariosVM.obtenerPorId(_propietarioIdSeleccionado!);
 
       final propiedad = Propiedad(
@@ -141,10 +138,9 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
         alquilerMensual: double.parse(_alquilerController.text.trim()),
         imagen: imagenUrl ?? '',
         estado: _estadoSeleccionado,
-        // ✅ El inquilino se asigna cuando se hace un pago
+        tipo: _tipoSeleccionado, // ✅ NUEVO: Guardar tipo
         inquilinoNombre: widget.propiedad?.inquilinoNombre,
         inquilinoId: widget.propiedad?.inquilinoId,
-        // ✅ Guardar propietario
         propietarioId: _propietarioIdSeleccionado,
         propietarioNombre: propietario?.nombre ?? 'Sin nombre',
       );
@@ -184,7 +180,7 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
 
   @override
   Widget build(BuildContext context) {
-    final propietariosVM = Provider.of<PropietariosViewModel>(context); // ✅ NUEVO
+    final propietariosVM = Provider.of<PropietariosViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -303,7 +299,69 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
               ),
               const SizedBox(height: 24),
 
-              // ✅ NUEVO: Selector de propietario
+              // ✅ NUEVO: Selector de tipo (Casa o Departamento)
+              const Text(
+                'Tipo de Propiedad',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: const Row(
+                          children: [
+                            Icon(Icons.home, color: Colors.blue, size: 20),
+                            SizedBox(width: 8),
+                            Text('Casa', style: TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                        value: 'Casa',
+                        groupValue: _tipoSeleccionado,
+                        activeColor: Colors.amber,
+                        onChanged: (value) {
+                          setState(() {
+                            _tipoSeleccionado = value!;
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: const Row(
+                          children: [
+                            Icon(Icons.apartment, color: Colors.orange, size: 20),
+                            SizedBox(width: 8),
+                            Text('Departamento', style: TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                        value: 'Departamento',
+                        groupValue: _tipoSeleccionado,
+                        activeColor: Colors.amber,
+                        onChanged: (value) {
+                          setState(() {
+                            _tipoSeleccionado = value!;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Selector de propietario
               const Text(
                 'Propietario',
                 style: TextStyle(
@@ -368,12 +426,10 @@ class _AgregarPropiedadVistaState extends State<AgregarPropiedadVista> {
                           ),
                         ),
                         const SizedBox(width: 12),
-
-                        // ⛑️ FIX: Usamos "Flexible" + "Column mainAxisSize: min"
                         Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min, // <<< evita overflow
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 prop.nombre,

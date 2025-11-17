@@ -122,21 +122,24 @@ class PagosVista extends StatelessWidget {
               itemBuilder: (context, i) {
                 final p = vm.pagos[i];
                 return Card(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   margin: const EdgeInsets.symmetric(vertical: 6),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    // ✅ NUEVO: Al tocar muestra opciones
                     onTap: () => _mostrarOpcionesPago(context, p),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: _getEstadoColor(p.estado).withOpacity(0.2),
+                            backgroundColor: _getEstadoColor(
+                                p.estado)
+                                .withOpacity(0.2),
                             child: Icon(
                               _getEstadoIcon(p.estado),
                               color: _getEstadoColor(p.estado),
@@ -145,7 +148,8 @@ class PagosVista extends StatelessWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   p.propiedadTitulo,
@@ -156,13 +160,40 @@ class PagosVista extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  p.inquilinoNombre,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
+                                // ✅ NUEVO: Mostrar inquilino Y propietario
+                                Row(
+                                  children: [
+                                    const Icon(Icons.person,
+                                        size: 14,
+                                        color: Colors.white54),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      p.inquilinoNombre,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                                if (p.propietarioNombre != null) ...[
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.home_work,
+                                          size: 14,
+                                          color: Colors.purple),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Prop: ${p.propietarioNombre}',
+                                        style: const TextStyle(
+                                          color: Colors.purple,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
@@ -176,20 +207,27 @@ class PagosVista extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
+                                      padding: const EdgeInsets
+                                          .symmetric(
                                         horizontal: 8,
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: _getEstadoColor(p.estado).withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(8),
+                                        color: _getEstadoColor(
+                                            p.estado)
+                                            .withOpacity(0.2),
+                                        borderRadius:
+                                        BorderRadius.circular(
+                                            8),
                                       ),
                                       child: Text(
                                         p.estado.toUpperCase(),
                                         style: TextStyle(
-                                          color: _getEstadoColor(p.estado),
+                                          color: _getEstadoColor(
+                                              p.estado),
                                           fontSize: 10,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight:
+                                          FontWeight.bold,
                                         ),
                                       ),
                                     ),
@@ -206,7 +244,6 @@ class PagosVista extends StatelessWidget {
                               ],
                             ),
                           ),
-                          // ✅ NUEVO: Indicador visual de que es clickeable
                           Icon(
                             Icons.more_vert,
                             color: Colors.white.withOpacity(0.5),
@@ -238,7 +275,6 @@ class PagosVista extends StatelessWidget {
     );
   }
 
-  // ✅ NUEVO: Mostrar opciones al tocar un pago
   void _mostrarOpcionesPago(BuildContext context, pago) {
     showModalBottomSheet(
       context: context,
@@ -285,13 +321,31 @@ class PagosVista extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
+                      // ✅ NUEVO: Mostrar propietario en el detalle
+                      if (pago.propietarioNombre != null) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.person_outline,
+                                size: 14, color: Colors.purple),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Propietario: ${pago.propietarioNombre}',
+                              style: const TextStyle(
+                                color: Colors.purple,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
                 const Divider(color: Colors.white12, height: 1),
 
-                // ✅ Marcar como pagado (si no está pagado)
+                // Marcar como pagado (si no está pagado)
                 if (!pago.estaPagado)
                   ListTile(
                     leading: const CircleAvatar(
@@ -304,14 +358,16 @@ class PagosVista extends StatelessWidget {
                     ),
                     onTap: () async {
                       Navigator.pop(bottomSheetContext);
-                      final vm = Provider.of<PagosViewModel>(context, listen: false);
+                      final vm =
+                      Provider.of<PagosViewModel>(context, listen: false);
 
                       try {
                         await vm.marcarPagado(pago.id);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('✅ Pago de ${pago.inquilinoNombre} marcado como pagado'),
+                              content: Text(
+                                  '✅ Pago de ${pago.inquilinoNombre} marcado como pagado'),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -329,7 +385,7 @@ class PagosVista extends StatelessWidget {
                     },
                   ),
 
-                // ✅ Editar
+                // Editar
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Color(0xFFFFA000),
@@ -350,7 +406,7 @@ class PagosVista extends StatelessWidget {
                   },
                 ),
 
-                // ✅ Eliminar
+                // Eliminar
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Color(0xFFD32F2F),
@@ -390,7 +446,6 @@ class PagosVista extends StatelessWidget {
     );
   }
 
-  // ✅ NUEVO: Confirmar eliminación
   void _confirmarEliminar(BuildContext context, pago) {
     showDialog(
       context: context,
@@ -408,7 +463,8 @@ class PagosVista extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+            child: const Text('Cancelar',
+                style: TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () async {
@@ -449,7 +505,8 @@ class PagosVista extends StatelessWidget {
                 }
               }
             },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+            child: const Text('Eliminar',
+                style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -498,7 +555,8 @@ class PagosVista extends StatelessWidget {
     );
   }
 
-  Widget _buildEstadistica(String label, String value, Color color, IconData icon) {
+  Widget _buildEstadistica(
+      String label, String value, Color color, IconData icon) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),

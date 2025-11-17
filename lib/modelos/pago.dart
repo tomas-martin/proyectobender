@@ -2,14 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Pago {
   final String id;
-  final String propiedadId; // 🔗 Conexión con Propiedad
-  final String propiedadTitulo; // Para mostrar en la UI
+  final String propiedadId;
+  final String propiedadTitulo;
   final String inquilinoId;
   final String inquilinoNombre;
   final double monto;
-  final String estado; // 'pagado', 'pendiente', 'moroso'
+  final String estado;
   final DateTime fecha;
-  final String? comprobante; // URL de imagen de comprobante (opcional)
+  final String? comprobante;
+  // ✅ NUEVO: Propietario
+  final String? propietarioId;
+  final String? propietarioNombre;
 
   Pago({
     required this.id,
@@ -21,6 +24,8 @@ class Pago {
     required this.estado,
     required this.fecha,
     this.comprobante,
+    this.propietarioId,
+    this.propietarioNombre,
   });
 
   // Leer desde Firestore
@@ -37,6 +42,8 @@ class Pago {
       estado: data['estado']?.toString() ?? 'pendiente',
       fecha: (data['fecha'] as Timestamp?)?.toDate() ?? DateTime.now(),
       comprobante: data['comprobante']?.toString(),
+      propietarioId: data['propietarioId']?.toString(),
+      propietarioNombre: data['propietarioNombre']?.toString(),
     );
   }
 
@@ -51,6 +58,8 @@ class Pago {
       'estado': estado,
       'fecha': Timestamp.fromDate(fecha),
       'comprobante': comprobante,
+      'propietarioId': propietarioId,
+      'propietarioNombre': propietarioNombre,
     };
   }
 
@@ -65,6 +74,8 @@ class Pago {
     String? estado,
     DateTime? fecha,
     String? comprobante,
+    String? propietarioId,
+    String? propietarioNombre,
   }) {
     return Pago(
       id: id ?? this.id,
@@ -76,6 +87,8 @@ class Pago {
       estado: estado ?? this.estado,
       fecha: fecha ?? this.fecha,
       comprobante: comprobante ?? this.comprobante,
+      propietarioId: propietarioId ?? this.propietarioId,
+      propietarioNombre: propietarioNombre ?? this.propietarioNombre,
     );
   }
 

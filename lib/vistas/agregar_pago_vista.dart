@@ -24,7 +24,10 @@ class AgregarPagoVista extends StatefulWidget {
 class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   final _formKey = GlobalKey<FormState>();
   final _montoController = TextEditingController();
-  final _inquilinoController = TextEditingController(); // ✅ NUEVO
+  final _inquilinoController = TextEditingController();
+
+  // ✅ NUEVO: Controller para mostrar el propietario (read-only)
+  final _propietarioController = TextEditingController();
 
   Propiedad? _propiedadSeleccionada;
   String _estadoSeleccionado = 'pendiente';
@@ -41,7 +44,8 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
       _montoController.text = widget.pago!.monto.toString();
       _estadoSeleccionado = widget.pago!.estado;
       _fechaSeleccionada = widget.pago!.fecha;
-      _inquilinoController.text = widget.pago!.inquilinoNombre; // ✅ NUEVO
+      _inquilinoController.text = widget.pago!.inquilinoNombre;
+      _propietarioController.text = widget.pago!.propietarioNombre ?? 'Sin propietario';
     }
 
     if (widget.propiedadId != null && widget.propiedadPreseleccionada == null) {
@@ -55,10 +59,14 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
         setState(() {
           _propiedadSeleccionada = prop;
           _montoController.text = prop.alquilerMensual.toString();
-          // ✅ NUEVO: Si la propiedad ya tiene inquilino, auto-completar
+
+          // Auto-completar inquilino
           if (prop.inquilinoNombre != null) {
             _inquilinoController.text = prop.inquilinoNombre!;
           }
+
+          // ✅ NUEVO: Auto-completar propietario
+          _propietarioController.text = prop.propietarioNombre ?? 'Sin propietario';
         });
       });
     }
@@ -67,7 +75,8 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
   @override
   void dispose() {
     _montoController.dispose();
-    _inquilinoController.dispose(); // ✅ NUEVO
+    _inquilinoController.dispose();
+    _propietarioController.dispose();
     super.dispose();
   }
 
@@ -91,28 +100,32 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
 
       final nombreInquilino = _inquilinoController.text.trim();
 
-      // ✅ NUEVO: Si la propiedad no tiene inquilino, actualizarla
+      // Si la propiedad no tiene inquilino, actualizarla
       if (_propiedadSeleccionada!.inquilinoNombre == null ||
           _propiedadSeleccionada!.inquilinoNombre!.isEmpty) {
-
         final propiedadActualizada = _propiedadSeleccionada!.copyWith(
           estado: 'alquilada',
           inquilinoId: 'INQ_${DateTime.now().millisecondsSinceEpoch}',
           inquilinoNombre: nombreInquilino,
         );
 
-        await propiedadesVM.actualizar(_propiedadSeleccionada!.id, propiedadActualizada);
+        await propiedadesVM.actualizar(
+            _propiedadSeleccionada!.id, propiedadActualizada);
       }
 
+      // ✅ NUEVO: Crear pago con información del propietario
       final pago = Pago(
         id: widget.pago?.id ?? "",
         propiedadId: _propiedadSeleccionada!.id,
         propiedadTitulo: _propiedadSeleccionada!.titulo,
-        inquilinoId: _propiedadSeleccionada!.inquilinoId ?? 'INQ_${DateTime.now().millisecondsSinceEpoch}',
+        inquilinoId: _propiedadSeleccionada!.inquilinoId ??
+            'INQ_${DateTime.now().millisecondsSinceEpoch}',
         inquilinoNombre: nombreInquilino,
         monto: double.parse(_montoController.text.trim()),
         estado: _estadoSeleccionado,
         fecha: _fechaSeleccionada,
+        propietarioId: _propiedadSeleccionada!.propietarioId,
+        propietarioNombre: _propiedadSeleccionada!.propietarioNombre,
       );
 
       if (widget.pago == null) {
@@ -240,14 +253,18 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                     setState(() {
                       _propiedadSeleccionada = value;
                       if (value != null) {
-                        _montoController.text =
-                            value.alquilerMensual.toString();
-                        // ✅ NUEVO: Auto-completar inquilino si ya existe
-                        if (value.inquilinoNombre != null && value.inquilinoNombre!.isNotEmpty) {
+                        _montoController.text = value.alquilerMensual.toString();
+
+                        // Auto-completar inquilino si ya existe
+                        if (value.inquilinoNombre != null &&
+                            value.inquilinoNombre!.isNotEmpty) {
                           _inquilinoController.text = value.inquilinoNombre!;
                         } else {
                           _inquilinoController.clear();
                         }
+
+                        // ✅ NUEVO: Auto-completar propietario
+                        _propietarioController.text = value.propietarioNombre ?? 'Sin propietario';
                       }
                     });
                   },
@@ -255,7 +272,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
 
               const SizedBox(height: 20),
 
-              // -------------------- INQUILINO -------------------- ✅ NUEVO
+              // -------------------- INQUILINO (QUIEN PAGA) --------------------
               const Text("Nombre del Inquilino",
                   style: TextStyle(color: Colors.white, fontSize: 16)),
               const SizedBox(height: 8),
@@ -277,6 +294,29 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                   if (v == null || v.trim().isEmpty) return "Obligatorio";
                   return null;
                 },
+              ),
+
+              const SizedBox(height: 20),
+
+              // -------------------- PROPIETARIO (READ-ONLY) --------------------
+              const Text("Propietario de la Propiedad",
+                  style: TextStyle(color: Colors.white, fontSize: 16)),
+              const SizedBox(height: 8),
+
+              TextFormField(
+                controller: _propietarioController,
+                style: const TextStyle(color: Colors.white70),
+                enabled: false, // ✅ Solo lectura
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.home_work, color: Colors.purple),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.03),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  hintText: "Selecciona una propiedad primero",
+                  hintStyle: const TextStyle(color: Colors.white38),
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -324,19 +364,22 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                 child: Column(
                   children: [
                     RadioListTile(
-                      title: const Text("Pagado", style: TextStyle(color: Colors.white)),
+                      title: const Text("Pagado",
+                          style: TextStyle(color: Colors.white)),
                       value: "pagado",
                       groupValue: _estadoSeleccionado,
                       onChanged: (v) => setState(() => _estadoSeleccionado = v!),
                     ),
                     RadioListTile(
-                      title: const Text("Pendiente", style: TextStyle(color: Colors.white)),
+                      title: const Text("Pendiente",
+                          style: TextStyle(color: Colors.white)),
                       value: "pendiente",
                       groupValue: _estadoSeleccionado,
                       onChanged: (v) => setState(() => _estadoSeleccionado = v!),
                     ),
                     RadioListTile(
-                      title: const Text("Moroso", style: TextStyle(color: Colors.white)),
+                      title: const Text("Moroso",
+                          style: TextStyle(color: Colors.white)),
                       value: "moroso",
                       groupValue: _estadoSeleccionado,
                       onChanged: (v) => setState(() => _estadoSeleccionado = v!),
@@ -373,7 +416,8 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                   }
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
@@ -384,8 +428,7 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                       const SizedBox(width: 12),
                       Text(
                         "${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}",
-                        style:
-                        const TextStyle(color: Colors.white, fontSize: 16),
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ],
                   ),
@@ -406,16 +449,16 @@ class _AgregarPagoVistaState extends State<AgregarPagoVista> {
                       child: CircularProgressIndicator(
                           color: Colors.black, strokeWidth: 2))
                       : const Icon(Icons.save),
-                  label: Text(
-                      _guardando ? "Guardando..." : "Guardar Pago"),
+                  label: Text(_guardando ? "Guardando..." : "Guardar Pago"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed:
-                  _guardando || todasPropiedades.isEmpty ? null : _guardarPago,
+                  onPressed: _guardando || todasPropiedades.isEmpty
+                      ? null
+                      : _guardarPago,
                 ),
               ),
             ],
