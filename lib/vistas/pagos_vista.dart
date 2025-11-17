@@ -18,9 +18,7 @@ class PagosVista extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              vm.escucharPagos();
-            },
+            onPressed: () => vm.escucharPagos(),
           ),
         ],
       ),
@@ -62,9 +60,7 @@ class PagosVista extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () {
-                  vm.escucharPagos();
-                },
+                onPressed: () => vm.escucharPagos(),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reintentar'),
                 style: ElevatedButton.styleFrom(
@@ -106,10 +102,7 @@ class PagosVista extends StatelessWidget {
       )
           : Column(
         children: [
-          // Resumen de pagos
           _buildResumen(vm),
-
-          // Lista de pagos
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.only(
@@ -137,8 +130,8 @@ class PagosVista extends StatelessWidget {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: _getEstadoColor(
-                                p.estado)
+                            backgroundColor:
+                            _getEstadoColor(p.estado)
                                 .withOpacity(0.2),
                             child: Icon(
                               _getEstadoIcon(p.estado),
@@ -160,40 +153,23 @@ class PagosVista extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                // ✅ NUEVO: Mostrar inquilino Y propietario
-                                Row(
-                                  children: [
-                                    const Icon(Icons.person,
-                                        size: 14,
-                                        color: Colors.white54),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      p.inquilinoNombre,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (p.propietarioNombre != null) ...[
-                                  const SizedBox(height: 2),
+                                // ✅ MOSTRAR SOLO PROPIETARIO
+                                if (p.propietarioNombre != null)
                                   Row(
                                     children: [
-                                      const Icon(Icons.home_work,
+                                      const Icon(Icons.person,
                                           size: 14,
                                           color: Colors.purple),
                                       const SizedBox(width: 4),
                                       Text(
-                                        'Prop: ${p.propietarioNombre}',
+                                        p.propietarioNombre!,
                                         style: const TextStyle(
                                           color: Colors.purple,
-                                          fontSize: 12,
+                                          fontSize: 13,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
@@ -201,7 +177,8 @@ class PagosVista extends StatelessWidget {
                                       '\$${p.monto.toStringAsFixed(0)}',
                                       style: const TextStyle(
                                         color: Colors.amber,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight:
+                                        FontWeight.bold,
                                         fontSize: 15,
                                       ),
                                     ),
@@ -289,7 +266,6 @@ class PagosVista extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header
                 Container(
                   width: 40,
                   height: 4,
@@ -315,18 +291,17 @@ class PagosVista extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '\$${pago.monto.toStringAsFixed(0)} • ${pago.inquilinoNombre}',
+                        '\$${pago.monto.toStringAsFixed(0)}',
                         style: const TextStyle(
                           color: Colors.white54,
                           fontSize: 14,
                         ),
                       ),
-                      // ✅ NUEVO: Mostrar propietario en el detalle
                       if (pago.propietarioNombre != null) ...[
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            const Icon(Icons.person_outline,
+                            const Icon(Icons.person,
                                 size: 14, color: Colors.purple),
                             const SizedBox(width: 4),
                             Text(
@@ -345,7 +320,6 @@ class PagosVista extends StatelessWidget {
                 const SizedBox(height: 20),
                 const Divider(color: Colors.white12, height: 1),
 
-                // Marcar como pagado (si no está pagado)
                 if (!pago.estaPagado)
                   ListTile(
                     leading: const CircleAvatar(
@@ -365,9 +339,8 @@ class PagosVista extends StatelessWidget {
                         await vm.marcarPagado(pago.id);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '✅ Pago de ${pago.inquilinoNombre} marcado como pagado'),
+                            const SnackBar(
+                              content: Text('✅ Pago marcado como pagado'),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -385,7 +358,6 @@ class PagosVista extends StatelessWidget {
                     },
                   ),
 
-                // Editar
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Color(0xFFFFA000),
@@ -406,7 +378,6 @@ class PagosVista extends StatelessWidget {
                   },
                 ),
 
-                // Eliminar
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Color(0xFFD32F2F),
@@ -424,7 +395,6 @@ class PagosVista extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Cancelar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
@@ -457,7 +427,7 @@ class PagosVista extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         content: Text(
-          'Se eliminará el pago de ${pago.inquilinoNombre} por \$${pago.monto.toStringAsFixed(0)}',
+          'Se eliminará el pago de ${pago.propietarioNombre ?? "esta propiedad"} por \$${pago.monto.toStringAsFixed(0)}',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -472,7 +442,6 @@ class PagosVista extends StatelessWidget {
 
               final vm = Provider.of<PagosViewModel>(context, listen: false);
 
-              // Mostrar loading
               showDialog(
                 context: context,
                 barrierDismissible: false,
@@ -485,7 +454,7 @@ class PagosVista extends StatelessWidget {
                 await vm.eliminar(pago.id);
 
                 if (context.mounted) {
-                  Navigator.pop(context); // Cerrar loading
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('✅ Pago eliminado correctamente'),
@@ -495,7 +464,7 @@ class PagosVista extends StatelessWidget {
                 }
               } catch (e) {
                 if (context.mounted) {
-                  Navigator.pop(context); // Cerrar loading
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('❌ Error al eliminar: $e'),
@@ -505,8 +474,7 @@ class PagosVista extends StatelessWidget {
                 }
               }
             },
-            child: const Text('Eliminar',
-                style: TextStyle(color: Colors.red)),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

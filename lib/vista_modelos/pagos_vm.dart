@@ -14,7 +14,7 @@ class PagosViewModel extends ChangeNotifier {
 
   StreamSubscription<QuerySnapshot>? _subscription;
 
-  // ✅ NUEVO: Callback para notificar cambios a FinanzasViewModel
+  // ✅ Callback para notificar cambios a FinanzasViewModel
   void Function(List<Pago>)? onPagosActualizados;
 
   PagosViewModel() {
@@ -43,7 +43,7 @@ class PagosViewModel extends ChangeNotifier {
           cargando = false;
           debugPrint('✅ Total pagos cargados: ${_lista.length}');
 
-          // ✅ NUEVO: Notificar a FinanzasViewModel
+          // ✅ Notificar a FinanzasViewModel
           onPagosActualizados?.call(_lista);
 
           notifyListeners();
@@ -68,7 +68,7 @@ class PagosViewModel extends ChangeNotifier {
     try {
       final data = pago.toMap();
       await _db.collection('pagos').add(data);
-      debugPrint('✅ Pago agregado: ${pago.inquilinoNombre}');
+      debugPrint('✅ Pago agregado: ${pago.propietarioNombre ?? "sin propietario"}');
     } catch (e) {
       error = "Error al agregar pago: $e";
       notifyListeners();

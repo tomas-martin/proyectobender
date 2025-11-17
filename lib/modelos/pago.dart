@@ -4,13 +4,11 @@ class Pago {
   final String id;
   final String propiedadId;
   final String propiedadTitulo;
-  final String inquilinoId;
-  final String inquilinoNombre;
   final double monto;
   final String estado;
   final DateTime fecha;
   final String? comprobante;
-  // ✅ NUEVO: Propietario
+  // ✅ SOLO PROPIETARIO (quien paga)
   final String? propietarioId;
   final String? propietarioNombre;
 
@@ -18,8 +16,6 @@ class Pago {
     required this.id,
     required this.propiedadId,
     required this.propiedadTitulo,
-    required this.inquilinoId,
-    required this.inquilinoNombre,
     required this.monto,
     required this.estado,
     required this.fecha,
@@ -34,8 +30,6 @@ class Pago {
       id: id,
       propiedadId: data['propiedadId']?.toString() ?? '',
       propiedadTitulo: data['propiedadTitulo']?.toString() ?? 'Sin propiedad',
-      inquilinoId: data['inquilinoId']?.toString() ?? '',
-      inquilinoNombre: data['inquilinoNombre']?.toString() ?? 'Sin nombre',
       monto: (data['monto'] is int)
           ? (data['monto'] as int).toDouble()
           : (data['monto'] as double? ?? 0.0),
@@ -52,8 +46,6 @@ class Pago {
     return {
       'propiedadId': propiedadId,
       'propiedadTitulo': propiedadTitulo,
-      'inquilinoId': inquilinoId,
-      'inquilinoNombre': inquilinoNombre,
       'monto': monto,
       'estado': estado,
       'fecha': Timestamp.fromDate(fecha),
@@ -68,8 +60,6 @@ class Pago {
     String? id,
     String? propiedadId,
     String? propiedadTitulo,
-    String? inquilinoId,
-    String? inquilinoNombre,
     double? monto,
     String? estado,
     DateTime? fecha,
@@ -81,8 +71,6 @@ class Pago {
       id: id ?? this.id,
       propiedadId: propiedadId ?? this.propiedadId,
       propiedadTitulo: propiedadTitulo ?? this.propiedadTitulo,
-      inquilinoId: inquilinoId ?? this.inquilinoId,
-      inquilinoNombre: inquilinoNombre ?? this.inquilinoNombre,
       monto: monto ?? this.monto,
       estado: estado ?? this.estado,
       fecha: fecha ?? this.fecha,
