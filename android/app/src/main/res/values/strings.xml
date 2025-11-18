@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bender Inmobiliaria</string>
+
+    <!-- Mensajes de autenticación biométrica -->
+    <string name="biometric_hint">Usa tu huella digital</string>
+    <string name="biometric_not_recognized">Huella no reconocida. Intenta de nuevo</string>
+    <string name="biometric_success">Autenticación exitosa</string>
+    <string name="biometric_hint_fingerprint">Toca el sensor</string>
+</resources>

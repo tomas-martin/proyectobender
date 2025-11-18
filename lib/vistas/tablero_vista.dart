@@ -5,7 +5,7 @@ import '../vista_modelos/finanzas_vm.dart';
 import '../vista_modelos/navigation_viewmodel.dart';
 import '../widgets/grafico_ingresos.dart';
 import '../widgets/boton_accion.dart';
-import '../widgets/tarjeta_propiedad.dart';
+import 'calculadora_apuestas_vista.dart';
 
 class TableroVista extends StatelessWidget {
   const TableroVista({super.key});
@@ -127,12 +127,12 @@ class TableroVista extends StatelessWidget {
               const SizedBox(height: 12),
 
               GridView.count(
-                crossAxisCount: 2, // ✅ CAMBIO: 2 columnas
+                crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.3, // ✅ Ajuste para mejor proporción
+                childAspectRatio: 1.3,
                 children: [
                   BotonAccion(
                     icono: Icons.home_work_outlined,
@@ -153,7 +153,7 @@ class TableroVista extends StatelessWidget {
                     onTap: () => nav.cambiarIndice(3),
                   ),
                   BotonAccion(
-                    icono: Icons.people, // ✅ NUEVO
+                    icono: Icons.people,
                     texto: 'Propietarios',
                     color: Colors.purpleAccent,
                     onTap: () => nav.cambiarIndice(4),
@@ -163,30 +163,82 @@ class TableroVista extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // === SECCIÓN PREMIUM ===
+              // === CALCULADORA DE APUESTAS ===
               const Text(
-                'Funciones Premium',
+                'Herramientas',
                 style: TextStyle(
-                  color: Colors.amber,
+                  color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
 
-              TarjetaPropiedad(
-                titulo: 'Análisis avanzado',
-                descripcion: 'Reportes mensuales y predicciones.',
-                icono: Icons.query_stats,
-                color: Colors.greenAccent,
-              ),
-              const SizedBox(height: 12),
-
-              TarjetaPropiedad(
-                titulo: 'Cobro automático',
-                descripcion: 'Envía recordatorios y cobra automáticamente.',
-                icono: Icons.autorenew,
-                color: Colors.yellowAccent,
+              Card(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CalculadoraApuestasVista(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.calculate,
+                            color: Colors.greenAccent,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Calculadora de Apuestas',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Calcula ganancias y cuotas',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white38,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

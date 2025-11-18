@@ -22,6 +22,9 @@ dependencies:
   # Imágenes
   image_picker: ^1.1.2
 
+  # Autenticación biométrica
+  local_auth: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
