@@ -13,7 +13,6 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
 
   double _gananciaTotal = 0.0;
   double _gananciaNeta = 0.0;
-  String _tipoApuesta = 'simple';
 
   @override
   void dispose() {
@@ -114,48 +113,6 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
 
             const SizedBox(height: 24),
 
-            // Tipo de apuesta
-            const Text(
-              'Tipo de Apuesta',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-              ),
-              child: Column(
-                children: [
-                  RadioListTile<String>(
-                    title: const Text('Simple', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Una sola apuesta', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    value: 'simple',
-                    groupValue: _tipoApuesta,
-                    activeColor: Colors.greenAccent,
-                    onChanged: (value) => setState(() => _tipoApuesta = value!),
-                  ),
-                  const Divider(color: Colors.white12, height: 1),
-                  RadioListTile<String>(
-                    title: const Text('Múltiple', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Multiplicador de cuotas', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    value: 'multiple',
-                    groupValue: _tipoApuesta,
-                    activeColor: Colors.greenAccent,
-                    onChanged: (value) => setState(() => _tipoApuesta = value!),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
             // Monto apostado
             const Text(
               'Monto Apostado',
@@ -179,7 +136,6 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
                 fillColor: Colors.white.withOpacity(0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -214,7 +170,6 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
                 fillColor: Colors.white.withOpacity(0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -318,7 +273,7 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
 
               const SizedBox(height: 24),
 
-              // Botón calcular de nuevo
+              // Botón limpiar
               SizedBox(
                 width: double.infinity,
                 height: 56,

@@ -18,11 +18,7 @@ class TableroVista extends StatelessWidget {
     final nav = Provider.of<NavigationViewModel>(context, listen: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tablero de Bender'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        automaticallyImplyLeading: false,
-      ),
+      appBar: null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -132,9 +128,9 @@ class TableroVista extends StatelessWidget {
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.3,
+                crossAxisSpacing: 0.2,
+                mainAxisSpacing: 0.2,
+                childAspectRatio: 1.7,
                 children: [
                   BotonAccion(
                     icono: Icons.home_work_outlined,
@@ -192,7 +188,7 @@ class TableroVista extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
                         Container(
@@ -260,7 +256,7 @@ class TableroVista extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
                         Container(
@@ -327,7 +323,7 @@ class TableroVista extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(6),
                     child: Row(
                       children: [
                         Container(

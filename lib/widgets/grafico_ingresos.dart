@@ -54,7 +54,7 @@ class GraficoIngresos extends StatelessWidget {
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY: maxVal > 0 ? maxVal * 1.2 : 1000, // 20% más alto que el máximo
+          maxY: maxVal > 0 ? maxVal * 2 : 1000, // 50% más alto que el máximo
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(

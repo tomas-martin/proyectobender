@@ -73,7 +73,8 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
         propiedadId: _propiedadSeleccionada!.id,
         propiedadTitulo: _propiedadSeleccionada!.titulo,
         propietarioId: _propiedadSeleccionada!.propietarioId ?? '',
-        propietarioNombre: _propiedadSeleccionada!.propietarioNombre ?? 'Sin propietario',
+        propietarioNombre:
+        _propiedadSeleccionada!.propietarioNombre ?? 'Sin propietario',
         monto: double.parse(_montoController.text.trim()),
         fechaVencimiento: _fechaVencimiento,
         estado: widget.recordatorio?.estado ?? 'pendiente',
@@ -131,6 +132,7 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
         child: Form(
           key: _formKey,
           child: Column(
+            mainAxisSize: MainAxisSize.min, // ← ← FIX PARA EL OVERFLOW
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header informativo
@@ -183,8 +185,8 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
                     Expanded(
                       child: Text(
                         'No hay propiedades registradas',
-                        style:
-                        TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(
+                            color: Colors.white70, fontSize: 13),
                       ),
                     ),
                   ],
@@ -211,27 +213,13 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
                 items: propiedadesVM.propiedades.map((prop) {
                   return DropdownMenuItem<Propiedad>(
                     value: prop,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          prop.titulo,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${prop.propietarioNombre ?? "Sin propietario"} • \$${prop.alquilerMensual.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    child: Text(
+                      prop.titulo,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   );
                 }).toList(),
@@ -309,7 +297,8 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
                 decoration: InputDecoration(
                   hintText: 'Ej: 15000',
                   hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: const Icon(Icons.attach_money, color: Colors.amber),
+                  prefixIcon:
+                  const Icon(Icons.attach_money, color: Colors.amber),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
                   border: OutlineInputBorder(
@@ -374,7 +363,8 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
                       const SizedBox(width: 12),
                       Text(
                         '${_fechaVencimiento.day}/${_fechaVencimiento.month}/${_fechaVencimiento.year}',
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                        style:
+                        const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       const Spacer(),
                       const Icon(Icons.edit, color: Colors.white54, size: 18),
@@ -431,8 +421,8 @@ class _AgregarRecordatorioVistaState extends State<AgregarRecordatorioVista> {
                     ),
                   )
                       : const Icon(Icons.save),
-                  label:
-                  Text(_guardando ? 'Guardando...' : 'Guardar Recordatorio'),
+                  label: Text(
+                      _guardando ? 'Guardando...' : 'Guardar Recordatorio'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     foregroundColor: Colors.black,

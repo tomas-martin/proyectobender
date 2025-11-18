@@ -137,10 +137,10 @@ class ReportesVista extends StatelessWidget {
           ),
           Container(width: 1, height: 40, color: Colors.white12),
           _buildEstadistica(
-            'En Proceso',
-            vm.cantidadEnProceso.toString(),
-            Colors.blue,
-            Icons.sync,
+            'Resueltos',
+            vm.cantidadResueltos.toString(),
+            Colors.green,
+            Icons.check_circle,
           ),
           Container(width: 1, height: 40, color: Colors.white12),
           _buildEstadistica(
