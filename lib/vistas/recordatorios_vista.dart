@@ -16,7 +16,6 @@ class RecordatoriosVista extends StatelessWidget {
       appBar: AppBar(
         title: Text('Recordatorios (${vm.cantidadVencidos} vencidos)'),
         backgroundColor: Theme.of(context).colorScheme.surface,
-        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

@@ -16,7 +16,6 @@ class ReportesVista extends StatelessWidget {
       appBar: AppBar(
         title: Text('Reportes (${vm.cantidadPendientes} pendientes)'),
         backgroundColor: Theme.of(context).colorScheme.surface,
-        automaticallyImplyLeading: false,
         actions: [
           // Filtro por estado
           PopupMenuButton<String>(
