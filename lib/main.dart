@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:probando_app_bender_v0/vista_modelos/recordatorios_vm.dart';
+import 'package:probando_app_bender_v0/vista_modelos/reportes_vm.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -65,6 +67,8 @@ class MyApp extends StatelessWidget {
         // Avisos y Errores
         ChangeNotifierProvider(create: (_) => AvisosViewModel()),
         ChangeNotifierProvider(create: (_) => ErroresViewModel()),
+        ChangeNotifierProvider(create: (_) => ReportesViewModel()),
+        ChangeNotifierProvider(create: (_) => RecordatoriosViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
