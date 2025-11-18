@@ -12,6 +12,10 @@ class RecordatorioPago {
   final bool notificado;
   final DateTime? fechaNotificacion;
 
+  // 🆕 Campos nuevos para vinculación automática
+  final String? pagoId; // ID del pago asociado
+  final bool generadoAutomaticamente; // Si fue generado automáticamente
+
   RecordatorioPago({
     required this.id,
     required this.propiedadId,
@@ -23,6 +27,8 @@ class RecordatorioPago {
     this.estado = 'pendiente',
     this.notificado = false,
     this.fechaNotificacion,
+    this.pagoId, // 🆕
+    this.generadoAutomaticamente = false, // 🆕
   });
 
   factory RecordatorioPago.fromMap(String id, Map<String, dynamic> data) {
@@ -39,6 +45,8 @@ class RecordatorioPago {
       estado: data['estado']?.toString() ?? 'pendiente',
       notificado: data['notificado'] ?? false,
       fechaNotificacion: (data['fechaNotificacion'] as Timestamp?)?.toDate(),
+      pagoId: data['pagoId']?.toString(), // 🆕
+      generadoAutomaticamente: data['generadoAutomaticamente'] ?? false, // 🆕
     );
   }
 
@@ -55,6 +63,8 @@ class RecordatorioPago {
       'fechaNotificacion': fechaNotificacion != null
           ? Timestamp.fromDate(fechaNotificacion!)
           : null,
+      'pagoId': pagoId, // 🆕
+      'generadoAutomaticamente': generadoAutomaticamente, // 🆕
     };
   }
 
@@ -69,6 +79,8 @@ class RecordatorioPago {
     String? estado,
     bool? notificado,
     DateTime? fechaNotificacion,
+    String? pagoId,
+    bool? generadoAutomaticamente,
   }) {
     return RecordatorioPago(
       id: id ?? this.id,
@@ -81,6 +93,8 @@ class RecordatorioPago {
       estado: estado ?? this.estado,
       notificado: notificado ?? this.notificado,
       fechaNotificacion: fechaNotificacion ?? this.fechaNotificacion,
+      pagoId: pagoId ?? this.pagoId, // 🆕
+      generadoAutomaticamente: generadoAutomaticamente ?? this.generadoAutomaticamente, // 🆕
     );
   }
 

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
+import '../widgets/barra_inferior.dart';
 
 class CalculadoraApuestasVista extends StatefulWidget {
   const CalculadoraApuestasVista({super.key});
@@ -49,11 +52,17 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
 
   @override
   Widget build(BuildContext context) {
+    final nav = Provider.of<NavigationViewModel>(context);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Calculadora de Apuestas'),
         backgroundColor: Theme.of(context).colorScheme.surface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -323,6 +332,7 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
           ],
         ),
       ),
+      bottomNavigationBar: BarraInferior(viewModel: nav),
     );
   }
 

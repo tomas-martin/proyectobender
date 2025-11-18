@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../modelos/pago.dart';
+import '../servicios/recordatorios_auto_servicio.dart';
 
 class PagosViewModel extends ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final RecordatoriosAutoServicio _recordatoriosAuto = RecordatoriosAutoServicio();
 
   List<Pago> _lista = [];
   List<Pago> get pagos => _lista;
@@ -19,6 +21,19 @@ class PagosViewModel extends ChangeNotifier {
 
   PagosViewModel() {
     escucharPagos();
+    // 🔥 GENERAR RECORDATORIOS AUTOMÁTICOS AL INICIAR
+    _inicializarRecordatorios();
+  }
+
+  /// 🆕 Inicializar sistema de recordatorios automáticos
+  Future<void> _inicializarRecordatorios() async {
+    try {
+      await Future.delayed(const Duration(seconds: 2)); // Esperar carga inicial
+      await _recordatoriosAuto.generarRecordatoriosAutomaticos();
+      debugPrint('✅ Sistema de recordatorios automáticos iniciado');
+    } catch (e) {
+      debugPrint('❌ Error inicializando recordatorios: $e');
+    }
   }
 
   /// Escucha cambios en tiempo real de Firebase
@@ -33,7 +48,7 @@ class PagosViewModel extends ChangeNotifier {
           .orderBy('fecha', descending: true)
           .snapshots()
           .listen(
-            (snapshot) {
+            (snapshot) async {
           debugPrint('📦 Pagos recibidos: ${snapshot.docs.length}');
 
           _lista = snapshot.docs.map((doc) {
@@ -45,6 +60,9 @@ class PagosViewModel extends ChangeNotifier {
 
           // ✅ Notificar a FinanzasViewModel
           onPagosActualizados?.call(_lista);
+
+          // 🔥 SINCRONIZAR RECORDATORIOS CUANDO CAMBIAN LOS PAGOS
+          _sincronizarRecordatorios();
 
           notifyListeners();
         },
@@ -63,12 +81,24 @@ class PagosViewModel extends ChangeNotifier {
     }
   }
 
+  /// 🆕 Sincronizar recordatorios con los pagos actuales
+  Future<void> _sincronizarRecordatorios() async {
+    try {
+      await _recordatoriosAuto.sincronizarRecordatoriosConPagos();
+    } catch (e) {
+      debugPrint('❌ Error sincronizando recordatorios: $e');
+    }
+  }
+
   /// AGREGAR un nuevo pago
   Future<void> agregar(Pago pago) async {
     try {
       final data = pago.toMap();
-      await _db.collection('pagos').add(data);
+      final docRef = await _db.collection('pagos').add(data);
       debugPrint('✅ Pago agregado: ${pago.propietarioNombre ?? "sin propietario"}');
+
+      // 🔥 CREAR RECORDATORIO AUTOMÁTICO
+      await _recordatoriosAuto.crearRecordatorioParaNuevoPago(docRef.id, pago);
     } catch (e) {
       error = "Error al agregar pago: $e";
       notifyListeners();
@@ -85,6 +115,9 @@ class PagosViewModel extends ChangeNotifier {
         'fecha': FieldValue.serverTimestamp(),
       });
       debugPrint('✅ Pago marcado como pagado: $id');
+
+      // 🔥 ELIMINAR RECORDATORIO AUTOMÁTICO
+      await _recordatoriosAuto.eliminarRecordatorioDePago(id);
     } catch (e) {
       error = "Error al actualizar pago: $e";
       notifyListeners();
@@ -98,6 +131,9 @@ class PagosViewModel extends ChangeNotifier {
     try {
       await _db.collection('pagos').doc(id).update(pago.toMap());
       debugPrint('✅ Pago actualizado: $id');
+
+      // 🔥 SINCRONIZAR RECORDATORIO
+      await _sincronizarRecordatorios();
     } catch (e) {
       error = "Error al actualizar pago: $e";
       notifyListeners();
@@ -111,11 +147,35 @@ class PagosViewModel extends ChangeNotifier {
     try {
       await _db.collection('pagos').doc(id).delete();
       debugPrint('✅ Pago eliminado: $id');
+
+      // 🔥 ELIMINAR RECORDATORIO ASOCIADO
+      await _recordatoriosAuto.eliminarRecordatorioDePago(id);
     } catch (e) {
       error = "Error al eliminar pago: $e";
       notifyListeners();
       debugPrint('❌ Error eliminando pago: $e');
       rethrow;
+    }
+  }
+
+  /// 🆕 Regenerar todos los recordatorios manualmente
+  Future<void> regenerarRecordatorios() async {
+    try {
+      debugPrint('🔄 Regenerando recordatorios...');
+      await _recordatoriosAuto.generarRecordatoriosAutomaticos();
+      debugPrint('✅ Recordatorios regenerados');
+    } catch (e) {
+      debugPrint('❌ Error regenerando: $e');
+      rethrow;
+    }
+  }
+
+  /// 🆕 Limpiar recordatorios de pagos completados
+  Future<void> limpiarRecordatoriosPagados() async {
+    try {
+      await _recordatoriosAuto.limpiarRecordatoriosPagados();
+    } catch (e) {
+      debugPrint('❌ Error limpiando: $e');
     }
   }
 

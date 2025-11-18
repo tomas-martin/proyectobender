@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../vista_modelos/reportes_vm.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
 import '../modelos/reporte_problema.dart';
+import '../widgets/barra_inferior.dart';
 import 'agregar_reporte_vista.dart';
 
 class ReportesVista extends StatelessWidget {
@@ -10,18 +12,21 @@ class ReportesVista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ReportesViewModel>(context);
+    final nav = Provider.of<NavigationViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text('Reportes (${vm.cantidadPendientes} pendientes)'),
         backgroundColor: Theme.of(context).colorScheme.surface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
-          // Filtro por estado
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
             onSelected: (value) {
-              // Aquí podrías implementar filtrado
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Filtro: $value')),
               );
@@ -65,6 +70,7 @@ class ReportesVista extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: BarraInferior(viewModel: nav),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -382,7 +388,6 @@ class ReportesVista extends StatelessWidget {
               const Divider(color: Colors.white12),
               const SizedBox(height: 12),
 
-              // Propiedad
               _buildInfoRow(
                 Icons.home,
                 'Propiedad',
@@ -391,7 +396,6 @@ class ReportesVista extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Descripción
               const Text(
                 'Descripción:',
                 style: TextStyle(
@@ -448,7 +452,6 @@ class ReportesVista extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Botones
               if (!reporte.estaResuelto)
                 SizedBox(
                   width: double.infinity,
