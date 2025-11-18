@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../vista_modelos/recordatorios_vm.dart';
-import '../vista_modelos/navigation_viewmodel.dart';
 import '../modelos/recordatorio_pago.dart';
-import '../widgets/barra_inferior.dart';
 import 'agregar_recordatorio_vista.dart';
-
-// Servicio de emails
-import '../servicios/email_servicio.dart';
 
 class RecordatoriosVista extends StatelessWidget {
   const RecordatoriosVista({super.key});
@@ -15,7 +10,6 @@ class RecordatoriosVista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<RecordatoriosViewModel>(context);
-    final nav = Provider.of<NavigationViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -59,7 +53,6 @@ class RecordatoriosVista extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: BarraInferior(viewModel: nav),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -98,8 +91,9 @@ class RecordatoriosVista extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Toca + para crear uno',
+            'Se crean automáticamente con los pagos pendientes',
             style: TextStyle(color: Colors.white70),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

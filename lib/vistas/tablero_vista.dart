@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:probando_app_bender_v0/vista_modelos/pagos_vm.dart';
 import 'package:probando_app_bender_v0/vistas/recordatorios_vista.dart';
 import 'package:probando_app_bender_v0/vistas/reportes_vista.dart';
 import 'package:provider/provider.dart';
@@ -162,7 +161,7 @@ class TableroVista extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // === CALCULADORA DE APUESTAS ===
+              // === HERRAMIENTAS ===
               const Text(
                 'Herramientas',
                 style: TextStyle(
@@ -172,134 +171,8 @@ class TableroVista extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Card(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: InkWell(
-                  onTap: () async {
-                    // Mostrar confirmación
-                    final confirmar = await showDialog<bool>(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        backgroundColor: const Color(0xFF1E1E1E),
-                        title: const Text(
-                          '🔄 Sincronizar Recordatorios',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        content: const Text(
-                          '¿Quieres generar recordatorios automáticos para todos los pagos pendientes?\n\nEsto creará recordatorios para pagos que no los tengan.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogContext, false),
-                            child: const Text('Cancelar'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(dialogContext, true),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                            ),
-                            child: const Text('Sincronizar'),
-                          ),
-                        ],
-                      ),
-                    );
 
-                    if (confirmar != true) return;
-
-                    // Mostrar loading
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (_) => const Center(
-                        child: CircularProgressIndicator(color: Colors.amber),
-                      ),
-                    );
-
-                    try {
-                      final pagosVM = Provider.of<PagosViewModel>(context, listen: false);
-                      await pagosVM.regenerarRecordatorios();
-
-                      if (context.mounted) {
-                        Navigator.pop(context); // Cerrar loading
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('✅ Recordatorios sincronizados correctamente'),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        Navigator.pop(context); // Cerrar loading
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('❌ Error: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.sync,
-                            color: Colors.blue,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Sincronizar Recordatorios',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Generar recordatorios automáticos',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.white38,
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-// === REPORTE DE PROBLEMAS ===
+              // === REPORTE DE PROBLEMAS ===
               Card(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 elevation: 3,
@@ -367,7 +240,7 @@ class TableroVista extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-// === RECORDATORIOS DE PAGO ===
+              // === RECORDATORIOS DE PAGO ===
               Card(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 elevation: 3,
@@ -432,7 +305,10 @@ class TableroVista extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 12),
+
+              // === CALCULADORA DE APUESTAS ===
               Card(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 elevation: 3,
@@ -505,7 +381,6 @@ class TableroVista extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildStat(String label, String value, Color color) {
     return Column(

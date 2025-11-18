@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../vista_modelos/reportes_vm.dart';
-import '../vista_modelos/navigation_viewmodel.dart';
 import '../modelos/reporte_problema.dart';
-import '../widgets/barra_inferior.dart';
 import 'agregar_reporte_vista.dart';
 
 class ReportesVista extends StatelessWidget {
@@ -12,7 +10,6 @@ class ReportesVista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ReportesViewModel>(context);
-    final nav = Provider.of<NavigationViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -70,7 +67,6 @@ class ReportesVista extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: BarraInferior(viewModel: nav),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
