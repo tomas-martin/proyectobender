@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:probando_app_bender_v0/vista_modelos/navigation_viewmodel.dart';
+import 'package:probando_app_bender_v0/widgets/barra_inferior.dart';
+import 'package:provider/provider.dart';
+import '../widgets/barra_inferior.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
 
 class CalculadoraApuestasVista extends StatefulWidget {
   const CalculadoraApuestasVista({super.key});
@@ -49,6 +54,7 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
 
   @override
   Widget build(BuildContext context) {
+    final nav = Provider.of<NavigationViewModel>(context);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -66,6 +72,7 @@ class _CalculadoraApuestasVistaState extends State<CalculadoraApuestasVista> {
           ),
         ],
       ),
+      bottomNavigationBar: BarraInferior(viewModel: nav),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

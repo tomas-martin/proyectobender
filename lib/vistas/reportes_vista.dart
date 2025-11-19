@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:probando_app_bender_v0/vista_modelos/navigation_viewmodel.dart';
 import 'package:provider/provider.dart';
 import '../vista_modelos/reportes_vm.dart';
 import '../modelos/reporte_problema.dart';
 import 'agregar_reporte_vista.dart';
+import '../widgets/barra_inferior.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
+
 
 class ReportesVista extends StatelessWidget {
   const ReportesVista({super.key});
@@ -10,6 +14,7 @@ class ReportesVista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ReportesViewModel>(context);
+    final nav = Provider.of<NavigationViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -81,6 +86,7 @@ class ReportesVista extends StatelessWidget {
         icon: const Icon(Icons.add),
         label: const Text('Reportar Problema'),
       ),
+      bottomNavigationBar: BarraInferior(viewModel: nav),
     );
   }
 

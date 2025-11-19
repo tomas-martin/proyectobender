@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../vista_modelos/recordatorios_vm.dart';
 import '../modelos/recordatorio_pago.dart';
 import 'agregar_recordatorio_vista.dart';
+import '../widgets/barra_inferior.dart';
+import '../vista_modelos/navigation_viewmodel.dart';
 
 class RecordatoriosVista extends StatelessWidget {
   const RecordatoriosVista({super.key});
@@ -10,6 +12,7 @@ class RecordatoriosVista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<RecordatoriosViewModel>(context);
+    final nav = Provider.of<NavigationViewModel>(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -67,6 +70,7 @@ class RecordatoriosVista extends StatelessWidget {
         icon: const Icon(Icons.add),
         label: const Text('Crear Recordatorio'),
       ),
+      bottomNavigationBar: BarraInferior(viewModel: nav),
     );
   }
 
