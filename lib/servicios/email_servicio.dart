@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class EmailServicio {
-  // ⚠️ IMPORTANTE: Reemplaza esta API key con tu clave real de Resend
-  // Obtén tu clave en: https://resend.com/api-keys
-  static const String _apiKey = 're_YeHaXymi_JPwVcAjKEimfhCTMh2QjiDt4';
+  // ⚠️ IMPORTANTE: Reemplaza con tu API key real de Resend
+  static const String _apiKey = 're_3FG8eKiH_NhYU8Qbu9eDddW9rLWYdYghj';
   static const String _apiUrl = 'https://api.resend.com/emails';
 
-  // Email del remitente (debe estar verificado en Resend)
-  static const String _fromEmail = 'onboarding@resend.dev'; // Cambia esto por tu dominio verificado
+  // Email del remitente (debe estar verificado en Resend o usar el de prueba)
+  static const String _fromEmail = 'send@benderapp.eu.org';
   static const String _fromName = 'Bender Inmobiliaria';
 
   /// Enviar recordatorio de pago por email
@@ -18,8 +17,11 @@ class EmailServicio {
     required String propiedad,
     required double monto,
     required DateTime fechaVencimiento,
+    bool esVencido = false,
   }) async {
     try {
+      print('📧 Enviando email a: $emailPropietario');
+
       final response = await http.post(
         Uri.parse(_apiUrl),
         headers: {
@@ -29,8 +31,12 @@ class EmailServicio {
         body: jsonEncode({
           'from': '$_fromName <$_fromEmail>',
           'to': [emailPropietario],
-          'subject': '🔔 Recordatorio de Pago - $propiedad',
-          'html': _generarHtmlRecordatorio(
+          'subject': esVencido
+              ? '⚠️ PAGO VENCIDO - $propiedad'
+              : '🔔 Recordatorio de Pago - $propiedad',
+          'html': esVencido
+              ? _generarHtmlVencido(nombrePropietario, propiedad, monto, 0)
+              : _generarHtmlRecordatorio(
             nombrePropietario,
             propiedad,
             monto,
@@ -94,41 +100,6 @@ class EmailServicio {
     }
   }
 
-  /// Enviar alerta de pago vencido
-  Future<bool> enviarAlertaVencimiento({
-    required String nombrePropietario,
-    required String emailPropietario,
-    required String propiedad,
-    required double monto,
-    required int diasVencido,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'from': '$_fromName <$_fromEmail>',
-          'to': [emailPropietario],
-          'subject': '⚠️ URGENTE: Pago Vencido - $propiedad',
-          'html': _generarHtmlVencido(
-            nombrePropietario,
-            propiedad,
-            monto,
-            diasVencido,
-          ),
-        }),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('❌ Error: $e');
-      return false;
-    }
-  }
-
   // ========================================
   // PLANTILLAS HTML
   // ========================================
@@ -140,6 +111,7 @@ class EmailServicio {
       DateTime fecha,
       ) {
     final fechaStr = '${fecha.day}/${fecha.month}/${fecha.year}';
+    final diasRestantes = fecha.difference(DateTime.now()).inDays;
 
     return '''
     <!DOCTYPE html>
@@ -154,7 +126,7 @@ class EmailServicio {
         .content { padding: 30px; }
         .info-box { background: #FFF3E0; border-left: 4px solid #FFC107; padding: 15px; margin: 20px 0; }
         .amount { font-size: 32px; color: #FFC107; font-weight: bold; text-align: center; margin: 20px 0; }
-        .button { display: inline-block; background: #FFC107; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .warning { background: #FFF3E0; border: 2px solid #FFC107; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
         .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #666; }
       </style>
     </head>
@@ -172,14 +144,14 @@ class EmailServicio {
             <strong>📅 Fecha de vencimiento:</strong> $fechaStr
           </div>
           
+          <div class="warning">
+            <strong>⏰ ATENCIÓN:</strong> Quedan $diasRestantes días para el vencimiento
+          </div>
+          
           <p style="text-align: center;">Monto a pagar:</p>
           <div class="amount">\$$monto</div>
           
           <p>Por favor, realiza el pago antes de la fecha de vencimiento para evitar recargos.</p>
-          
-          <p style="text-align: center; margin-top: 30px;">
-            <a href="#" class="button">Ver Detalles</a>
-          </p>
           
           <p style="color: #666; font-size: 14px; margin-top: 30px;">
             Si ya realizaste el pago, por favor ignora este mensaje.
@@ -281,13 +253,13 @@ class EmailServicio {
           <h2>Estimado/a $nombre,</h2>
           
           <div class="urgent">
-            Tu pago está vencido hace $diasVencido días
+            Tu pago está VENCIDO
           </div>
           
           <div class="alert-box">
             <strong>🏢 Propiedad:</strong> $propiedad<br>
             <strong>💰 Monto adeudado:</strong> \$$monto<br>
-            <strong>⏰ Días de atraso:</strong> $diasVencido días
+            <strong>⚠️ Estado:</strong> VENCIDO
           </div>
           
           <p style="color: #d32f2f; font-weight: bold;">

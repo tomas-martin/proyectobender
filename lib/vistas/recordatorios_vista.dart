@@ -356,6 +356,8 @@ class RecordatoriosVista extends StatelessWidget {
     );
   }
 
+  // 🔥 REEMPLAZAR el método _mostrarDetalle en recordatorios_vista.dart
+
   void _mostrarDetalle(
       BuildContext context,
       RecordatorioPago recordatorio,
@@ -449,6 +451,7 @@ class RecordatoriosVista extends StatelessWidget {
                 statusColor,
               ),
 
+              // 🆕 Mostrar si ya fue notificado
               if (recordatorio.notificado) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -458,13 +461,15 @@ class RecordatoriosVista extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.blue.withOpacity(0.3)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.check, color: Colors.blue, size: 16),
-                      SizedBox(width: 8),
-                      Text(
-                        'Notificación enviada',
-                        style: TextStyle(color: Colors.blue, fontSize: 12),
+                      const Icon(Icons.check, color: Colors.blue, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Email enviado el ${recordatorio.fechaNotificacion != null ? "${recordatorio.fechaNotificacion!.day}/${recordatorio.fechaNotificacion!.month}/${recordatorio.fechaNotificacion!.year}" : "fecha desconocida"}',
+                          style: const TextStyle(color: Colors.blue, fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -473,25 +478,57 @@ class RecordatoriosVista extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Botones
+              // 🔥 BOTÓN DE ENVIAR NOTIFICACIÓN
               if (!recordatorio.estaPagado && !recordatorio.notificado)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       Navigator.pop(bottomContext);
+
+                      // Mostrar loading
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(
+                          child: CircularProgressIndicator(color: Colors.amber),
+                        ),
+                      );
+
                       try {
-                        await vm.marcarEnviado(recordatorio.id);
+                        // Enviar email
+                        final esVencido = recordatorio.estaVencido;
+                        final enviado = await vm.enviarEmailRecordatorio(
+                          recordatorio,
+                          esVencido: esVencido,
+                        );
+
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('✅ Recordatorio enviado'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          Navigator.pop(context); // Cerrar loading
+
+                          if (enviado) {
+                            // Marcar como enviado
+                            await vm.marcarEnviado(recordatorio.id);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('✅ Email enviado exitosamente'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('❌ No se pudo enviar el email. Verifica que el propietario tenga email registrado.'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 4),
+                              ),
+                            );
+                          }
                         }
                       } catch (e) {
                         if (context.mounted) {
+                          Navigator.pop(context); // Cerrar loading
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('❌ Error: $e'),
@@ -502,14 +539,114 @@ class RecordatoriosVista extends StatelessWidget {
                       }
                     },
                     icon: const Icon(Icons.send),
-                    label: const Text('Enviar Recordatorio'),
+                    label: const Text('Enviar Email Ahora'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ),
+
+              // 🆕 BOTÓN PARA REENVIAR (si ya fue enviado pero no pagado)
+              if (!recordatorio.estaPagado && recordatorio.notificado)
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(bottomContext);
+
+                      // Confirmar reenvío
+                      final confirmar = await showDialog<bool>(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          backgroundColor: const Color(0xFF1E1E1E),
+                          title: const Text(
+                            '¿Reenviar email?',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: const Text(
+                            'Se volverá a enviar el recordatorio de pago al propietario.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(dialogContext, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                              ),
+                              child: const Text('Reenviar'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmar == true && context.mounted) {
+                        // Mostrar loading
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => const Center(
+                            child: CircularProgressIndicator(color: Colors.amber),
+                          ),
+                        );
+
+                        try {
+                          final esVencido = recordatorio.estaVencido;
+                          final enviado = await vm.enviarEmailRecordatorio(
+                            recordatorio,
+                            esVencido: esVencido,
+                          );
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+
+                            if (enviado) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('✅ Email reenviado'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('❌ No se pudo reenviar el email'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('❌ Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reenviar Email'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(color: Colors.blue),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+
               const SizedBox(height: 12),
+
+              // Botones de editar y eliminar
               Row(
                 children: [
                   Expanded(
@@ -555,7 +692,6 @@ class RecordatoriosVista extends StatelessWidget {
       },
     );
   }
-
   Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
     return Row(
       children: [
