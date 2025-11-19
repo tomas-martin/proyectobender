@@ -156,6 +156,8 @@ class _InicioVistaState extends State<InicioVista> {
       child: Scaffold(
         appBar: _mostrarPantallaInicio
             ? null
+            : (nav.indiceActual == 0
+            ? null  // ✅ Sin AppBar en el Tablero (índice 0)
             : AppBar(
           backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
@@ -164,7 +166,7 @@ class _InicioVistaState extends State<InicioVista> {
             icon: const Icon(Icons.arrow_back_ios_new),
             onPressed: () => nav.cambiarIndice(0),
           ),
-        ),
+        )),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),
           child: _mostrarPantallaInicio
