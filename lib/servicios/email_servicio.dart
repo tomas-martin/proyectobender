@@ -7,7 +7,7 @@ class EmailServicio {
   static const String _apiUrl = 'https://api.resend.com/emails';
 
   // Email del remitente (debe estar verificado en Resend o usar el de prueba)
-  static const String _fromEmail = 'send@benderapp.eu.org';
+  static const String _fromEmail = 'onboarding@resend.dev';
   static const String _fromName = 'Bender Inmobiliaria';
 
   /// Enviar recordatorio de pago por email
